@@ -1,4 +1,4 @@
-# video-graphcut
+# video-SnapCut
 Adance in Computer Graphics Research final project
 
 ## papers for selection
@@ -7,4 +7,4 @@ Adance in Computer Graphics Research final project
 
 - [ ] [Improved Seam Carving for Video Retargeting](http://www.eng.tau.ac.il/~avidan/papers/vidret.pdf)
 
-- [ ] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009
+- [x] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009 (let's go with this)
