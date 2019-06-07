@@ -9,4 +9,4 @@ LDFLAGS = -L$(OPENCV_LIB_PATH) -llibopencv_calib3d341 -llibopencv_core341 -llibo
 all: snapcut
 
 snapcut: main.cpp
-	g++ -o main main.cpp -std=c++17 -L$(OPENCV_LIB_PATH) -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -I$(OPENCV_INC_PATH)
+	g++ main.cpp -std=c++17 -L$(OPENCV_LIB_PATH) -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -I$(OPENCV_INC_PATH)
