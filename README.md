@@ -46,6 +46,22 @@ For frame $I_t$, we have:
    * Optical flow between $I_{t+1}'$ and $I_{t+1}$
      * only focus on pixels inside the foreground of $I_{t+1}'$
      * for each window $W_i$, the movement of window center is the **average flow vector** inside the region of foreground of this window
-     * (does every pixel on contour need to move along flow vertor?)
 
 2. update local models
+
+   * color model
+     * history color model
+     * updated color model
+       * how to combine?
+     * use the one with the smaller foreground region
+   * shape prior
+     * shape model and shape confidence
+   * color and shape integration
+     * compute $\sigma_s$
+     * use shape confidence $f_s(x)$ to perform a linear combination
+
+3. object cutout
+
+   * full-frame foreground probabilities computed from overlaping windows
+   * pixel-level Graph Cut to generate $L^{t+1}(x)$
+   * use this newly generated mask iteratively perform Step2: update local models and Step3: object cutout
