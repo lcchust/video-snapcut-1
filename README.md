@@ -1,5 +1,5 @@
 # video-SnapCut
-Adance in Computer Graphics Research final project
+Advance in Computer Graphics Research final project
 
 ## papers for selection
 
@@ -8,3 +8,14 @@ Adance in Computer Graphics Research final project
 - [ ] [Improved Seam Carving for Video Retargeting](http://www.eng.tau.ac.il/~avidan/papers/vidret.pdf)
 
 - [x] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009 (let's go with this)
+
+
+## Roadmap
+6.12 TODOs
+- [ ] initialize first frame
+- [ ] feature detection on second, affine transformation
+- [ ] optical flow
+- [ ] update shape model
+- [ ] update color model
+- [ ] merge window 
+- [ ] cut out final foreground mask(graphcut)
