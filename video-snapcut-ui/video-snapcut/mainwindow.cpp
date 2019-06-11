@@ -10,6 +10,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // drawView
+    drawScene = new DrawScene(this);
+    drawScene->addItem(&pixmapItem);
+    ui->drawView->setScene(drawScene);
+    ui->drawView->setRenderHint(QPainter::Antialiasing);
+
+    // Menu
     openAction = new QAction(tr("&Open..."), this);
     openAction->setShortcuts(QKeySequence::Open);
     openAction->setStatusTip(tr("Open an existing file"));
@@ -18,9 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMenu *file = menuBar()->addMenu(tr("&File"));
     file->addAction(openAction);
 
-    cv::Mat inputImage = cv::imread("/Users/97littleleaf11/Desktop/test.png");
-    if (!inputImage.empty())
-        cv::imshow("Display Image", inputImage);
+
+    ui->drawView->show();
 }
 
 MainWindow::~MainWindow()
@@ -44,9 +50,18 @@ void MainWindow::open()
     fileDiolog.setNameFilters(filters);
 
     if (fileDiolog.exec() == QDialog::Accepted) {
-        path = fileDiolog.selectedFiles()[0];
+        QString path = fileDiolog.selectedFiles()[0];
         if (path.length()) {
             std::cout << path.toStdString() << std::endl;
+
+            cv::Mat inputImage = cv::imread(path.toStdString());
+            cv::cvtColor(inputImage, inputImage, CV_BGR2RGB);
+            QImage img = QImage((const unsigned char*)(inputImage.data),
+                                inputImage.cols, inputImage.rows,
+                                inputImage.cols * inputImage.channels(),
+                                QImage::Format_RGB888);
+            pixmapItem.setPixmap(QPixmap::fromImage(img));
+            //ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
         } else {
             QMessageBox::information(this, tr("打开文件失败"), tr("打开文件失败!"));
         }

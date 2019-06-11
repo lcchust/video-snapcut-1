@@ -25,10 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        drawpanel.cpp \
+        drawscene.cpp \
         main.cpp \
         mainwindow.cpp
 
 HEADERS += \
+        drawpanel.h \
+        drawscene.h \
         mainwindow.h
 
 FORMS += \
