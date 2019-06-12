@@ -11,7 +11,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // drawView
-    drawScene = new DrawScene(this);
+    drawScene = new DrawScene(ui->drawView);
+    drawScene->setSceneRect(ui->drawView->rect());
+    pixmapItem.setZValue(0);
     drawScene->addItem(&pixmapItem);
     ui->drawView->setScene(drawScene);
     ui->drawView->setRenderHint(QPainter::Antialiasing);
@@ -61,7 +63,8 @@ void MainWindow::open()
                                 inputImage.cols * inputImage.channels(),
                                 QImage::Format_RGB888);
             pixmapItem.setPixmap(QPixmap::fromImage(img));
-            //ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
+            ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
+
         } else {
             QMessageBox::information(this, tr("打开文件失败"), tr("打开文件失败!"));
         }

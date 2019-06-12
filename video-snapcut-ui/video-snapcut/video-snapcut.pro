@@ -28,12 +28,18 @@ SOURCES += \
         drawpanel.cpp \
         drawscene.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        myfold.cpp \
+        myline.cpp \
+        shape.cpp
 
 HEADERS += \
         drawpanel.h \
         drawscene.h \
-        mainwindow.h
+        mainwindow.h \
+        myfold.h \
+        myline.h \
+        shape.h
 
 FORMS += \
         mainwindow.ui
