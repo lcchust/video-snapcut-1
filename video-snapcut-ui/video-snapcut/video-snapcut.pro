@@ -31,6 +31,7 @@ SOURCES += \
         mainwindow.cpp \
         myfold.cpp \
         myline.cpp \
+        opencvtester.cpp \
         shape.cpp
 
 HEADERS += \
@@ -39,6 +40,7 @@ HEADERS += \
         mainwindow.h \
         myfold.h \
         myline.h \
+        opencvtester.h \
         shape.h
 
 FORMS += \

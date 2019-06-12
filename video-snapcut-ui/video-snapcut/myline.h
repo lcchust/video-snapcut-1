@@ -11,7 +11,7 @@ public:
 
     void startDraw(QGraphicsSceneMouseEvent *event);
     void drawing(QGraphicsSceneMouseEvent *event);
-    QPainterPath& getPath();
+    void endDraw(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // MYLINE_H

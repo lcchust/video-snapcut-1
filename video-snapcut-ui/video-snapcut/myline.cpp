@@ -14,3 +14,8 @@ void MyLine::drawing(QGraphicsSceneMouseEvent *event)
 {
     path.lineTo(event->scenePos());
 }
+
+void MyLine::endDraw(QGraphicsSceneMouseEvent *event)
+{
+
+}

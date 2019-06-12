@@ -8,6 +8,7 @@ class Shape
 {
 public:
     enum Code {
+        None,
         Line,
         Fold
     };
@@ -16,6 +17,7 @@ public:
 
     virtual void startDraw(QGraphicsSceneMouseEvent *event) = 0;
     virtual void drawing(QGraphicsSceneMouseEvent *event) = 0;
+    virtual void endDraw(QGraphicsSceneMouseEvent *event) = 0;
     QPainterPath& getPath();
 
 protected:
