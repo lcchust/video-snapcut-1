@@ -1,5 +1,5 @@
 # video-SnapCut
-Adance in Computer Graphics Research final project
+Advance in Computer Graphics Research final project
 
 ### papers for selection
 
@@ -9,12 +9,16 @@ Adance in Computer Graphics Research final project
 
 - [x] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009 (let's go with this)
 
-### Todo List
+## Roadmap
 
-- [x] GUI mask painting
-- [ ] ORB detection and homography transformation
-- [ ] Optical flow
-- [x] OpenCV GraphCut API
+7.6.12 TODOs
+- [ ] initialize first frame
+- [ ] feature detection on second, affine transformation
+- [ ] optical flow
+- [ ] update shape model
+- [ ] update color model
+- [ ] merge window 
+- [ ] cut out final foreground mask(graphcut)
 
 ### Critical Steps
 
@@ -68,5 +72,7 @@ For frame $I_t$, we have:
 3. object cutout
 
    * full-frame foreground probabilities computed from overlaping windows
+
    * pixel-level Graph Cut to generate $L^{t+1}(x)$
+
    * use this newly generated mask iteratively perform Step2: update local models and Step3: object cutout
