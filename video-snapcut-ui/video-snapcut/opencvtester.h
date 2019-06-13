@@ -11,7 +11,8 @@ class OpencvTester
 public:
     OpencvTester();
 
-    static void testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat& mask);
+    static void testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat& mask, cv::Mat& im_out);
+    static void testOpticalFlow(cv::Mat& img_warped, cv::Mat& img_2);
 };
 
 #endif // OPENCVTESTER_H

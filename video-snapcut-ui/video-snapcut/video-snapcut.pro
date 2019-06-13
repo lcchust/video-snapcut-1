@@ -58,6 +58,7 @@ LIBS += -L /usr/local/lib \
         -lopencv_features2d \
         -lopencv_objdetect \
         -lopencv_calib3d \
+        -lopencv_video \
 
 
 # Default rules for deployment.

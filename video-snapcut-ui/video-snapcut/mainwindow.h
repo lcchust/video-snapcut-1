@@ -23,6 +23,7 @@ public:
 
 private slots:
     void open();
+    void test_motion_estimation();
 
 private:
     Ui::MainWindow *ui;
@@ -31,7 +32,7 @@ private:
     QImage *curImage;
     QGraphicsPixmapItem pixmapItem;
 
-    QAction *openAction;
+    QAction *openAction, *test1Action;
     QFileDialog *fileDiolog;
     QString path;
 };

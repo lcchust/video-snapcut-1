@@ -6,11 +6,11 @@ OpencvTester::OpencvTester()
 
 }
 
-void OpencvTester::testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat& mask)
+void OpencvTester::testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat& mask, cv::Mat& im_out)
 {
-//    cv::imshow("input1", img_1);
-//    cv::imshow("input2", img_2);
-//    cv::imshow("input3", mask);
+    cv::imshow("input1", img_1);
+    cv::imshow("input2", img_2);
+    cv::imshow("input3", mask);
 
     std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
     std::vector<cv::DMatch> matches;
@@ -64,11 +64,37 @@ void OpencvTester::testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat
 //    cv::imshow("good matches", img_goodmatch);
 
     cv::Mat h = cv::findHomography(points_1, points_2);
-    cv::Mat im_out;
     cv::warpPerspective(img_1, im_out, h, img_2.size());
 
-//    cv::imshow("result", im_out);
-//    cv::waitKey(0);
+    cv::imshow("result", im_out);
+    cv::waitKey(0);
 
     return;
+}
+
+void OpencvTester::testOpticalFlow(cv::Mat &img_warped, cv::Mat &img_2)
+{
+    cv::Mat img_warped_gray, img_2_gray;
+    cv::cvtColor(img_warped, img_warped_gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(img_2, img_2_gray, cv::COLOR_BGR2GRAY);
+
+    cv::Mat flow;
+    cv::UMat flowUMat;
+    cv::calcOpticalFlowFarneback(img_warped_gray, img_2_gray, flowUMat, 0.4, 1, 10, 2, 7, 1.2, 0);
+    flowUMat.copyTo(flow);
+
+    cv::Mat img_2_saved(img_2);
+
+    for (int y = 0; y < img_warped.rows; y += 5) {
+         for (int x = 0; x < img_warped.cols; x += 5) {
+              const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x) * 10;
+              cv::line(img_2_saved, cv::Point(x, y), cv::Point(cvRound(x + flowatxy.x), cvRound(y + flowatxy.y)), cv::Scalar(255,0,0));
+              cv::circle(img_2_saved, cv::Point(x, y), 1, cv::Scalar(0, 0, 0), -1);
+         }
+    }
+
+    cv::imshow("prev_gray", img_warped_gray);
+    cv::imshow("cur_gray", img_2_gray);
+    cv::imshow("prew", img_2_saved);
+    cv::waitKey(0);
 }
