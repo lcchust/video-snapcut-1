@@ -6,7 +6,7 @@ OpencvTester::OpencvTester()
 
 }
 
-void OpencvTester::testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat& mask, cv::Mat& im_out)
+void OpencvTester::test_ORB_pos_estimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat& mask, cv::Mat& im_out)
 {
     cv::imshow("input1", img_1);
     cv::imshow("input2", img_2);
@@ -72,16 +72,14 @@ void OpencvTester::testORBPoseEstimation(cv::Mat& img_1, cv::Mat& img_2, cv::Mat
     return;
 }
 
-void OpencvTester::testOpticalFlow(cv::Mat &img_warped, cv::Mat &img_2)
+void OpencvTester::test_optical_flow(cv::Mat &img_warped, cv::Mat &img_2)
 {
     cv::Mat img_warped_gray, img_2_gray;
     cv::cvtColor(img_warped, img_warped_gray, cv::COLOR_BGR2GRAY);
     cv::cvtColor(img_2, img_2_gray, cv::COLOR_BGR2GRAY);
 
     cv::Mat flow;
-    cv::UMat flowUMat;
-    cv::calcOpticalFlowFarneback(img_warped_gray, img_2_gray, flowUMat, 0.4, 1, 10, 2, 7, 1.2, 0);
-    flowUMat.copyTo(flow);
+    cv::calcOpticalFlowFarneback(img_warped_gray, img_2_gray, flow, 0.5, 1, 10, 2, 7, 1.2, 0);
 
     cv::Mat img_2_saved(img_2);
 

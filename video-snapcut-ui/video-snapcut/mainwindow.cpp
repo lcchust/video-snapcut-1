@@ -4,7 +4,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "opencvtester.h"
+#include "../tester/opencvtester.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -87,9 +87,9 @@ void MainWindow::test_motion_estimation()
     QTime t;
     t.start();
 
-    b.testORBPoseEstimation(img_1, img_2, mask, img_out);
+    b.test_ORB_pos_estimation(img_1, img_2, mask, img_out);
     std::cout << "motion estimation: " << t.elapsed() << "ms" << std::endl;
 
-    b.testOpticalFlow(img_out, img_2);
+    b.test_optical_flow(img_out, img_2);
     std::cout << "optical flow: " << t.elapsed() << "ms" << std::endl;
 }
