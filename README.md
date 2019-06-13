@@ -9,6 +9,17 @@ Advance in Computer Graphics Research final project
 
 - [x] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009 (let's go with this)
 
+## types
+
+frame(img): CV_8UC3
+mask: CV_8UC1
+frame_lab: CV_32FC3
+boundry_distance: CV_64FC1
+
+window:
+
+foreground_gmm_mat_: CV_32FC1 
+shape_confidence_: CV_64FC1
 
 ## Roadmap
 6.12 TODOs
@@ -17,7 +28,7 @@ Advance in Computer Graphics Research final project
 ffmpeg -skip_frame nokey -i book
 .mov -vsync 0 -r 30 -f image2 keyframe-%02d.jpg
 ```
-- [ ] initialize first frame
+- [x] initialize first frame
 - [ ] feature detection on second, affine transformation
 - [ ] optical flow
 - [ ] update shape model
