@@ -79,12 +79,12 @@ void DrawScene::maskGenerator(QPainterPath& maskPath)
     QImage mask(imgX, imgY, QImage::Format_RGB888);
     QPainter p(&mask);
 
-    p.setPen(QPen(Qt::white));
-    p.setBrush(QBrush(Qt::white, Qt::SolidPattern));
-    p.drawRect(0, 0, imgX, imgY);
-
     p.setPen(QPen(Qt::black));
     p.setBrush(QBrush(Qt::black, Qt::SolidPattern));
+    p.drawRect(0, 0, imgX, imgY);
+
+    p.setPen(QPen(Qt::white));
+    p.setBrush(QBrush(Qt::white, Qt::SolidPattern));
     p.drawPath(maskPath);
 
     p.end();

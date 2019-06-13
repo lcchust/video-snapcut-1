@@ -55,6 +55,9 @@ LIBS += -L /usr/local/lib \
         -lopencv_highgui \
         -lopencv_imgproc \
         -lopencv_imgcodecs \
+        -lopencv_features2d \
+        -lopencv_objdetect \
+        -lopencv_calib3d \
 
 
 # Default rules for deployment.

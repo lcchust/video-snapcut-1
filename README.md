@@ -11,10 +11,10 @@ Adance in Computer Graphics Research final project
 
 ### Todo List
 
-- [ ] GUI mask painting
+- [x] GUI mask painting
 - [ ] ORB detection and homography transformation
 - [ ] Optical flow
-- [ ] OpenCV GraphCut API
+- [x] OpenCV GraphCut API
 
 ### Critical Steps
 
