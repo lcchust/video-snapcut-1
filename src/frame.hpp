@@ -39,6 +39,8 @@ class Frame {
 
   void remove_window(int idx);
 
+  cv::Mat generate_combined_map();
+  
   // opencv Function
   void show_windows();
 

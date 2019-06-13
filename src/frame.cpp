@@ -1,4 +1,5 @@
 #include "frame.hpp"
+#include <chrono>
 #include <cmath>
 #include <utility>
 #include "window.hpp"
@@ -17,7 +18,8 @@ cv::Mat convert_mask_to_boundary_distance(
   for (int r = 0; r < res.rows; ++r) {
     for (int c = 0; c < res.cols; ++c) {
       for (auto& contour : contours) {
-        double distance = std::abs(cv::pointPolygonTest(contour, cv::Point(r, c), true));
+        double distance =
+            std::abs(cv::pointPolygonTest(contour, cv::Point(r, c), true));
         if (res.at<double>(r, c) < 0) {
           res.at<double>(r, c) = distance;
         } else if (distance < res.at<double>(r, c)) {
@@ -57,7 +59,7 @@ Frame::Frame(int frame_id, cv::Mat&& frame)
 
 void Frame::add_window(cv::Point center) {
   windows_.emplace(std::make_pair(window_id_cnt_, LocalWindow(center, *this)));
-  ++window_id_cnt_ ;
+  ++window_id_cnt_;
 }
 
 void Frame::remove_window(int idx) {
@@ -115,13 +117,20 @@ void Frame::initialize_windows() {
         prev = cur;
       }
     }
-
   }
+  auto start = std::chrono::high_resolution_clock::now();
+ 
   // initailize windows' info
+  // #pragma omp parallel for num_threads(4)
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
     it->second.update_color_model();
     it->second.update_shape_confidence();
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  std::cout
+      << "time consumed: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+      << "ms" << std::endl;
 }
 
 void Frame::show_windows() {
@@ -140,4 +149,13 @@ void Frame::show_windows() {
       break;
     }
   }
+}
+
+cv::Mat Frame::generate_combined_map() {
+  cv::Mat res(frame_.rows, frame_.cols, CV_64FC1, cv::Scalar(-1.0));
+  for (int r = 0; r < res.rows; ++r) {
+    for (int c = 0; c < res.cols; ++r) {
+    }
+  }
+  return res;
 }
