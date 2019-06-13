@@ -2,3 +2,5 @@
 *.o
 *.exe
 resources/
+src/fuck.cpp
+src/test.cpp

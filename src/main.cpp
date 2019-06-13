@@ -5,9 +5,11 @@
 #include <set>
 #include <string>
 
+#include "video_snapcut.hpp"
+
 // global variable
-const std::string filename = "../resources/cv_desk.png";
-const std::string windowname = "video snapcut";
+const char* format_string = "../resources/keyframe-%02d.jpg";
+
 cv::Mat* global_mat_ptr = nullptr;
 bool drawing = false;
 int global_x = -1;
@@ -54,7 +56,8 @@ static void create_initial_frame_boundry(cv::Mat& img) {
   std::cout << "User draw complete" << std::endl;
 }
 
-static void construct_local_window(cv::Mat& img, std::vector<cv::Point>& contour) {
+static void construct_local_window(cv::Mat& img,
+                                   std::vector<cv::Point>& contour) {
   assert(contour.size() != 0);
   cv::Mat img_back_up = img.clone();
   double distance = 0.0;
@@ -76,7 +79,7 @@ static void construct_local_window(cv::Mat& img, std::vector<cv::Point>& contour
     }
     last_point = p;
   }
-    while (true) {
+  while (true) {
     cv::imshow(windowname, img_back_up);
     int key = cv::waitKey(1) & 0xFF;
     if (key == 27) {
@@ -85,40 +88,39 @@ static void construct_local_window(cv::Mat& img, std::vector<cv::Point>& contour
   }
 }
 
-int main() {
-  // load image
-  cv::Mat img = cv::imread(filename, CV_LOAD_IMAGE_COLOR);
-  assert(img.data != nullptr);
-  // // create window
+int main(int argc, char* argv[]) {
   cv::namedWindow(windowname, CV_WINDOW_AUTOSIZE);
-  create_initial_frame_boundry(img);
-  construct_local_window(img, global_contour);
+  std::vector<Frame> frames;
 
-  // // construct local window
-  // for (int i = 0; i < coords.size(); ++i) {
-  //   if (i % 10 == 0) {
-  //     int x = coords[i].first;
-  //     int y = coords[i].second;
-  //     cv::rectangle(img_back_up, cv::Rect(x - 25, y - 25, 50, 50),
-  //                   cv::Scalar(0, 0, 255));
-  //   }
-  // }
-  // cv::imshow(windowname, img_back_up);
-  // cv::waitKey(0);
+  cv::Mat current_frame;
+  int frame_cnt = 0;
+  Frame* cur_frame_ptr = nullptr;
+  Frame* prev_frame_ptr = nullptr;
 
-  // // the user drawed forms a contour
-  // // using the contour and pointPolygonTest to test whether a point inside
-  // // cv::pointPolygonTest(contour, cv::Point(1, 1), true); // use true for
-  // // distance for each window, train local classifier
+  while (true) {
+    char filename_buffer[128];
+    sprintf(filename_buffer, format_string, frame_cnt + 1);
+    std::string file = filename_buffer;
+    current_frame = cv::imread(file);
+    if (current_frame.data == nullptr) {
+      break;
+    }
+      
+    // speicial handle frame 0
+    if (frame_cnt == 0) {
+      // TODO: get mask from outside
+      cv::Mat mask = imread("../resources/keyframe-01-mask.png", cv::IMREAD_GRAYSCALE);
+      frames.emplace_back(frame_cnt, std::move(current_frame), std::move(mask));
+      frames[0].initialize_windows();
+      frames[0].show_windows();
+    } else {
+      // frames.emplace_back(frame_cnt, std::move(current_frame));
 
-  // // load next image
-
-  // // use feature matching and affine transformation get large motion
-  // // use optical flow to get small motion
-
-  // // estimate new boundary
-  // // update classifier
-
-  // cv::destroyAllWindows();
+    }
+    ++frame_cnt;
+  }
+  std::cout << "total frames: " << frame_cnt << std::endl;
+  
+  cv::destroyAllWindows();
   return 0;
 }

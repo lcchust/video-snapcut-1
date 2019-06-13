@@ -12,6 +12,11 @@ Advance in Computer Graphics Research final project
 
 ## Roadmap
 6.12 TODOs
+- [x] use command to extract key frames from original video
+```bash
+ffmpeg -skip_frame nokey -i book
+.mov -vsync 0 -r 30 -f image2 keyframe-%02d.jpg
+```
 - [ ] initialize first frame
 - [ ] feature detection on second, affine transformation
 - [ ] optical flow
