@@ -113,6 +113,19 @@ int main(int argc, char* argv[]) {
       frames.emplace_back(frame_cnt, std::move(current_frame), std::move(mask));
       frames[0].initialize_windows();
       frames[0].show_windows();
+      auto combined_map = frames[0].generate_combined_map();
+      auto& windows = frames[0].get_windows();
+      for (auto it = 0; it != windows.size(); ++it) {
+        auto search = windows.find(it);
+        // it->second.integration();
+        show_probability_map(search->second.get_foreground_sample());
+        show_probability_map(search->second.get_background_sample());
+        show_probability_map(search->second.get_shape_confidence());
+        show_probability_map(search->second.get_color_probability_map());
+      }
+      
+      
+      // show_probability_map(combined_map);
     } else {
       // frames.emplace_back(frame_cnt, std::move(current_frame));
 

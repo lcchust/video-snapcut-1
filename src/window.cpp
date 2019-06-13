@@ -1,7 +1,7 @@
-#include <iostream>
 #include "window.hpp"
-#include "frame.hpp"
 #include <cmath>
+#include <iostream>
+#include "frame.hpp"
 double weight_function(double distance) {
   return std::exp((-distance * distance) / (SIGMA_C * SIGMA_C));
 }
@@ -28,11 +28,13 @@ LocalWindow::LocalWindow(cv::Point _center, Frame& cur_frame)
 void LocalWindow::update_color_model() {
   std::vector<float> fg_vec;
   std::vector<float> bg_vec;
+  foreground_sample_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
+  background_sample_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
   for (int r = 0; r < WINDOW_LENGTH; ++r) {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
-   
+      
       if (cur_frame_.boundary_distance_.at<double>(y, x) >
           BOUNDARY_DISTANCE_THRESHOLD) {
         auto pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
@@ -40,10 +42,12 @@ void LocalWindow::update_color_model() {
           fg_vec.push_back(pixel[0]);
           fg_vec.push_back(pixel[1]);
           fg_vec.push_back(pixel[2]);
+          foreground_sample_.at<double>(r, c) = 1.0;
         } else if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_BACKGROUND) {
           bg_vec.push_back(pixel[0]);
           bg_vec.push_back(pixel[1]);
           bg_vec.push_back(pixel[2]);
+          background_sample_.at<double>(r, c) = 1.0;
         } else {
           std::cout << x << " " << y << std::endl;
           std::cout << (int)cur_frame_.mask_.at<uint8_t>(y, x) << std::endl;
@@ -57,7 +61,6 @@ void LocalWindow::update_color_model() {
   background_gmm_mat_ = cv::Mat(bg_vec.size(), 1, CV_32FC1, bg_vec.data());
   background_gmm_mat_ = background_gmm_mat_.reshape(1, bg_vec.size() / 3);
 
-  
   // train
   foreground_gmm_->trainEM(foreground_gmm_mat_);
   background_gmm_->trainEM(background_gmm_mat_);
@@ -89,7 +92,7 @@ void LocalWindow::update_color_model() {
 
       // conf
       double weight = weight_function(distance);
-      confidence_nume += ((mask_label - p_c) * weight);
+      confidence_nume += (std::abs(mask_label - p_c) * weight);
       confidence_deno += weight;
     }
   }
@@ -117,5 +120,22 @@ double LocalWindow::calculate_sigma_shape(double color_confidence) {
                (color_confidence - F_CUTOFF) * (color_confidence - F_CUTOFF);
   } else {
     return SIGMA_MIN;
+  }
+}
+
+void LocalWindow::update_combined_map(cv::Mat& nume_map, cv::Mat& deno_map,
+                                      cv::Mat& count_map) {
+  for (int r = 0; r < WINDOW_LENGTH; ++r) {
+    for (int c = 0; c < WINDOW_LENGTH; ++c) {
+      int x = base_.x + c;
+      int y = base_.y + r;
+      double p_f = color_probability_.at<double>(r, c);
+      cv::Vec2d vec(center_.x - x, center_.y - y);
+      double distance = cv::norm(vec);
+      double factor = 1.0 / (distance + ELIPSON);
+      nume_map.at<double>(y, x) += (p_f * factor);
+      deno_map.at<double>(y, x) += (factor);
+      count_map.at<uint8_t>(y, x) = 1;
+    }
   }
 }

@@ -19,7 +19,7 @@ cv::Mat convert_mask_to_boundary_distance(
     for (int c = 0; c < res.cols; ++c) {
       for (auto& contour : contours) {
         double distance =
-            std::abs(cv::pointPolygonTest(contour, cv::Point(r, c), true));
+            std::abs(cv::pointPolygonTest(contour, cv::Point(c, r), true));
         if (res.at<double>(r, c) < 0) {
           res.at<double>(r, c) = distance;
         } else if (distance < res.at<double>(r, c)) {
@@ -152,9 +152,24 @@ void Frame::show_windows() {
 }
 
 cv::Mat Frame::generate_combined_map() {
-  cv::Mat res(frame_.rows, frame_.cols, CV_64FC1, cv::Scalar(-1.0));
+  cv::Mat res(frame_.rows, frame_.cols, CV_64FC1, cv::Scalar(0.0));
+  cv::Mat deno(frame_.rows, frame_.cols, CV_64FC1, cv::Scalar(0.0));
+  cv::Mat nume(frame_.rows, frame_.cols, CV_64FC1, cv::Scalar(0.0));
+  cv::Mat count(frame_.rows, frame_.cols, CV_8UC1, cv::Scalar(0));
+  for (auto it = windows_.begin(); it != windows_.end(); ++it) {
+    it->second.update_combined_map(nume, deno, count);
+  }
   for (int r = 0; r < res.rows; ++r) {
-    for (int c = 0; c < res.cols; ++r) {
+    for (int c = 0; c < res.cols; ++c) {
+      if (count.at<uint8_t>(r, c) == 0) {
+        if (mask_.at<uint8_t>(r, c) == MASK_FOREGROUND) {
+          res.at<double>(r, c) = 1.0;
+        } else {
+          res.at<double>(r, c) = 0.0;
+        }
+      } else {
+        res.at<double>(r, c) = nume.at<double>(r, c) / deno.at<double>(r, c);
+      }
     }
   }
   return res;

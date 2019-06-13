@@ -9,7 +9,7 @@ const int MASK_BACKGROUND = 0;
 
 const int WINDOW_LENGTH = 50;
 const int HALF_WINDOW_LENGTH = 25;
-const double WINDOW_INTERVAL = 33; // 2/3 of WINDOW_LENGTH
+const double WINDOW_INTERVAL = 33;  // 2/3 of WINDOW_LENGTH
 const int COLOR_COMPONENT = 3;
 
 const double BOUNDARY_DISTANCE_THRESHOLD = 5.0;
@@ -21,6 +21,8 @@ const int SIGMA_MIN = 2;
 const int SIGMA_MAX = 50;
 const double F_CUTOFF = 0.85;
 const int R = 2;
+
+const double ELIPSON = 0.1;
 
 double weight_function(double distance);
 
@@ -36,11 +38,20 @@ class LocalWindow {
 
   void update_shape_confidence();
 
-  cv::Mat get_color_probability_map() { return color_probability_; }
+  void update_combined_map(cv::Mat& nume_map, cv::Mat& deno_map,
+                           cv::Mat& count_map);
+
+  void integration();
+
+  cv::Mat& get_color_probability_map() { return color_probability_; }
+
+  cv::Mat& get_foreground_sample() { return foreground_sample_; }
+
+  cv::Mat& get_background_sample() { return background_sample_; }
 
   double get_color_confidence() { return color_confidence_; }
 
-  cv::Mat get_shape_confidence() { return shape_confidence_; }
+  cv::Mat& get_shape_confidence() { return shape_confidence_; }
 
   cv::Point get_center() { return center_; }
 
@@ -55,7 +66,11 @@ class LocalWindow {
   cv::Ptr<cv::ml::EM> background_gmm_;
   cv::Mat foreground_gmm_mat_;
   cv::Mat background_gmm_mat_;
+  cv::Mat foreground_sample_;
+  cv::Mat background_sample_;
+
   cv::Mat color_probability_;
+  cv::Mat integrated_probabitlity_map_;
   double color_confidence_;
   cv::Mat shape_confidence_;
   double sigma_shape_;

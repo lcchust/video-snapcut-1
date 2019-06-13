@@ -38,3 +38,21 @@ std::string cv_type_to_string(int type) {
 
   return r;
 }
+
+
+void show_probability_map(cv::Mat& map) {
+  assert(map.type() == CV_64FC1);
+  cv::Mat tmp = map.clone();
+  
+  tmp *= 255.0;
+  cv::Mat drawboard;
+  tmp.convertTo(drawboard, CV_8U);
+  cv::cvtColor(drawboard, drawboard, cv::COLOR_GRAY2BGR);
+    while (true) {
+    cv::imshow(windowname, drawboard);
+    int key = cv::waitKey(1) & 0xFF;
+    if (key == 27) {
+      break;
+    }
+  }
+}

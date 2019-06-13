@@ -6,14 +6,15 @@
 
 std::vector<std::vector<cv::Point>> convert_mask_to_contours(cv::Mat& mask);
 
-cv::Mat convert_mask_to_boundary_distance(cv::Mat& mask, std::vector<std::vector<cv::Point>>& contours);
+cv::Mat convert_mask_to_boundary_distance(
+    cv::Mat& mask, std::vector<std::vector<cv::Point>>& contours);
 
 cv::Mat convert_bgr_to_lab(cv::Mat& img);
 
 class Frame {
  public:
   friend class LocalWindow;
-  
+
   Frame() = default;
 
   // used for first frame
@@ -21,7 +22,7 @@ class Frame {
 
   // used for other frames
   Frame(int frame_id, cv::Mat&& frame);
-      
+
   // getter
   int get_frame_id() const { return frame_id_; }
 
@@ -33,6 +34,8 @@ class Frame {
 
   auto& get_windows() { return windows_; }
 
+  auto& get_boundary_distance() { return boundary_distance_; }
+  
   void initialize_windows();
 
   void add_window(cv::Point center);
@@ -40,7 +43,7 @@ class Frame {
   void remove_window(int idx);
 
   cv::Mat generate_combined_map();
-  
+
   // opencv Function
   void show_windows();
 
