@@ -56,3 +56,14 @@ void show_probability_map(cv::Mat& map) {
     }
   }
 }
+
+void save_probability_map(cv::Mat& map, const std::string& filename) {
+  assert(map.type() == CV_64FC1);
+  cv::Mat tmp = map.clone();
+  
+  tmp *= 255.0;
+  cv::Mat drawboard;
+  tmp.convertTo(drawboard, CV_8U);
+  cv::cvtColor(drawboard, drawboard, cv::COLOR_GRAY2BGR);
+  cv::imwrite(filename, drawboard);
+}

@@ -69,7 +69,6 @@ void Frame::remove_window(int idx) {
   }
 }
 
-// TODO: test this
 void Frame::initialize_windows() {
   for (auto& contour : contours_) {
     cv::Point prev, cur;
@@ -125,6 +124,7 @@ void Frame::initialize_windows() {
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
     it->second.update_color_model();
     it->second.update_shape_confidence();
+    it->second.integration();
   }
   auto end = std::chrono::high_resolution_clock::now();
   std::cout

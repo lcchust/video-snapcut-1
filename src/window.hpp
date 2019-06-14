@@ -2,6 +2,7 @@
 #include <map>
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include "gmm.hpp"
 class Frame;
 
 const int MASK_FOREGROUND = 255;
@@ -45,10 +46,6 @@ class LocalWindow {
 
   cv::Mat& get_color_probability_map() { return color_probability_; }
 
-  cv::Mat& get_foreground_sample() { return foreground_sample_; }
-
-  cv::Mat& get_background_sample() { return background_sample_; }
-
   double get_color_confidence() { return color_confidence_; }
 
   cv::Mat& get_shape_confidence() { return shape_confidence_; }
@@ -58,17 +55,18 @@ class LocalWindow {
   cv::Point get_base() { return base_; }
 
  private:
+  void init_gmms();
+  void assign_gmm_component(cv::Mat& comp_idx);
+  void learn_gmm(cv::Mat& comp_idx);
+
   static double calculate_sigma_shape(double color_confidence);
   // left upper corner
   cv::Point base_;
   cv::Point center_;
-  cv::Ptr<cv::ml::EM> foreground_gmm_;
-  cv::Ptr<cv::ml::EM> background_gmm_;
-  cv::Mat foreground_gmm_mat_;
-  cv::Mat background_gmm_mat_;
-  cv::Mat foreground_sample_;
-  cv::Mat background_sample_;
-
+  GMM background_gmm_;
+  GMM foreground_gmm_;
+  std::vector<cv::Vec3f> foreground_samples_;
+  std::vector<cv::Vec3f> background_samples_;
   cv::Mat color_probability_;
   cv::Mat integrated_probabitlity_map_;
   double color_confidence_;

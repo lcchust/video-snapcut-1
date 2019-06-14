@@ -7,67 +7,16 @@ double weight_function(double distance) {
 }
 
 LocalWindow::LocalWindow(cv::Point _center, Frame& cur_frame)
-    : center_(_center),
-      cur_frame_(cur_frame),
-      foreground_gmm_(cv::ml::EM::create()),
-      background_gmm_(cv::ml::EM::create()) {
+    : center_(_center), cur_frame_(cur_frame) {
   base_ =
       cv::Point(center_.x - HALF_WINDOW_LENGTH, center_.y - HALF_WINDOW_LENGTH);
-  // set color GMM params
-  foreground_gmm_->setClustersNumber(COLOR_COMPONENT);
-  foreground_gmm_->setCovarianceMatrixType(cv::ml::EM::COV_MAT_SPHERICAL);
-  foreground_gmm_->setTermCriteria(cv::TermCriteria(
-      cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 300, 0.1));
-
-  background_gmm_->setClustersNumber(COLOR_COMPONENT);
-  background_gmm_->setCovarianceMatrixType(cv::ml::EM::COV_MAT_SPHERICAL);
-  background_gmm_->setTermCriteria(cv::TermCriteria(
-      cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 300, 0.1));
 }
 
 void LocalWindow::update_color_model() {
-  std::vector<float> fg_vec;
-  std::vector<float> bg_vec;
-  foreground_sample_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
-  background_sample_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
-  for (int r = 0; r < WINDOW_LENGTH; ++r) {
-    for (int c = 0; c < WINDOW_LENGTH; ++c) {
-      int x = base_.x + c;
-      int y = base_.y + r;
-      
-      if (cur_frame_.boundary_distance_.at<double>(y, x) >
-          BOUNDARY_DISTANCE_THRESHOLD) {
-        auto pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
-        if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
-          fg_vec.push_back(pixel[0]);
-          fg_vec.push_back(pixel[1]);
-          fg_vec.push_back(pixel[2]);
-          foreground_sample_.at<double>(r, c) = 1.0;
-        } else if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_BACKGROUND) {
-          bg_vec.push_back(pixel[0]);
-          bg_vec.push_back(pixel[1]);
-          bg_vec.push_back(pixel[2]);
-          background_sample_.at<double>(r, c) = 1.0;
-        } else {
-          std::cout << x << " " << y << std::endl;
-          std::cout << (int)cur_frame_.mask_.at<uint8_t>(y, x) << std::endl;
-          exit(1);
-        }
-      }
-    }
-  }
-  foreground_gmm_mat_ = cv::Mat(fg_vec.size(), 1, CV_32FC1, fg_vec.data());
-  foreground_gmm_mat_ = foreground_gmm_mat_.reshape(1, fg_vec.size() / 3);
-  background_gmm_mat_ = cv::Mat(bg_vec.size(), 1, CV_32FC1, bg_vec.data());
-  background_gmm_mat_ = background_gmm_mat_.reshape(1, bg_vec.size() / 3);
-
-  // train
-  foreground_gmm_->trainEM(foreground_gmm_mat_);
-  background_gmm_->trainEM(background_gmm_mat_);
-
-  auto fg_weights = foreground_gmm_->getWeights();
-  auto bg_weights = background_gmm_->getWeights();
-
+  cv::Mat comp_idx(WINDOW_LENGTH, WINDOW_LENGTH, CV_32SC1);
+  init_gmms();
+  assign_gmm_component(comp_idx);
+  learn_gmm(comp_idx);
   color_probability_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1);
   // color probability and confidence
   double confidence_deno = 0.0;
@@ -81,12 +30,9 @@ void LocalWindow::update_color_model() {
       double mask_label = mask_val == MASK_FOREGROUND ? 1.0 : 0.0;
       double distance = cur_frame_.boundary_distance_.at<double>(y, x);
 
-      // prob
-      cv::Mat p1, p2;
-      foreground_gmm_->predict2(pixel, p1);
-      background_gmm_->predict2(pixel, p2);
-      double p_f = fg_weights.dot(p1);
-      double p_b = bg_weights.dot(p2);
+      double p_f = foreground_gmm_(pixel);
+      double p_b = background_gmm_(pixel);
+
       double p_c = p_f / (p_f + p_b);
       color_probability_.at<double>(r, c) = p_c;
 
@@ -129,13 +75,109 @@ void LocalWindow::update_combined_map(cv::Mat& nume_map, cv::Mat& deno_map,
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
-      double p_f = color_probability_.at<double>(r, c);
+      double p_f = integrated_probabitlity_map_.at<double>(r, c);
       cv::Vec2d vec(center_.x - x, center_.y - y);
       double distance = cv::norm(vec);
       double factor = 1.0 / (distance + ELIPSON);
       nume_map.at<double>(y, x) += (p_f * factor);
       deno_map.at<double>(y, x) += (factor);
       count_map.at<uint8_t>(y, x) = 1;
+    }
+  }
+}
+
+void LocalWindow::init_gmms() {
+  const int kMeansItCount = 10;
+  const int kMeansType = cv::KMEANS_PP_CENTERS;
+  cv::Mat bgdLabels, fgdLabels;
+  std::vector<cv::Vec3f> bgdSamples, fgdSamples;
+  for (int r = 0; r < WINDOW_LENGTH; ++r) {
+    for (int c = 0; c < WINDOW_LENGTH; ++c) {
+      int x = base_.x + c;
+      int y = base_.y + r;
+      if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
+        fgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+      } else {
+        bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+      }
+    }
+  }
+  assert(!bgdSamples.empty() && !bgdSamples.empty());
+  cv::Mat _bgdSamples((int)bgdSamples.size(), 3, CV_32FC1, &bgdSamples[0][0]);
+  cv::kmeans(_bgdSamples, GMM::componentsCount, bgdLabels,
+             cv::TermCriteria(CV_TERMCRIT_ITER, kMeansItCount, 0.0), 0,
+             kMeansType);
+  cv::Mat _fgdSamples((int)fgdSamples.size(), 3, CV_32FC1, &fgdSamples[0][0]);
+  cv::kmeans(_fgdSamples, GMM::componentsCount, fgdLabels,
+             cv::TermCriteria(CV_TERMCRIT_ITER, kMeansItCount, 0.0), 0,
+             kMeansType);
+  background_gmm_.initLearning();
+  for (int i = 0; i < (int)bgdSamples.size(); i++) {
+    background_gmm_.addSample(bgdLabels.at<int>(i, 0), bgdSamples[i]);
+  }
+  background_gmm_.endLearning();
+
+  foreground_gmm_.initLearning();
+  for (int i = 0; i < (int)fgdSamples.size(); i++) {
+    foreground_gmm_.addSample(fgdLabels.at<int>(i, 0), fgdSamples[i]);
+  }
+  foreground_gmm_.endLearning();
+}
+
+void LocalWindow::assign_gmm_component(cv::Mat& comp_idx) {
+  for (int r = 0; r < WINDOW_LENGTH; ++r) {
+    for (int c = 0; c < WINDOW_LENGTH; ++c) {
+      int x = base_.x + c;
+      int y = base_.y + r;
+      cv::Vec3d color = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
+      comp_idx.at<int>(r, c) =
+          cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND
+              ? foreground_gmm_.whichComponent(color)
+              : foreground_gmm_.whichComponent(color);
+    }
+  }
+}
+
+void LocalWindow::learn_gmm(cv::Mat& comp_idx) {
+  background_gmm_.initLearning();
+  foreground_gmm_.initLearning();
+  for (int ci = 0; ci < GMM::componentsCount; ci++) {
+    for (int r = 0; r < WINDOW_LENGTH; ++r) {
+      for (int c = 0; c < WINDOW_LENGTH; ++c) {
+        int x = base_.x + c;
+        int y = base_.y + r;
+
+        if (comp_idx.at<int>(r, c) == ci &&
+            cur_frame_.boundary_distance_.at<double>(y, x) >
+                BOUNDARY_DISTANCE_THRESHOLD) {
+          cv::Vec3f pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
+          if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
+            foreground_gmm_.addSample(ci, pixel);
+            foreground_samples_.push_back(pixel);
+          } else {
+            background_gmm_.addSample(ci, pixel);
+            background_samples_.push_back(pixel);
+          }
+        }
+      }
+    }
+  }
+  background_gmm_.endLearning();
+  foreground_gmm_.endLearning();
+}
+
+void LocalWindow::integration() {
+  integrated_probabitlity_map_ =
+      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1);
+  for (int r = 0; r < WINDOW_LENGTH; ++r) {
+    for (int c = 0; c < WINDOW_LENGTH; ++c) {
+      int x = base_.x + c;
+      int y = base_.y + r;
+      int label = cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND ? 1 : 0;
+      integrated_probabitlity_map_.at<double>(r, c) =
+          shape_confidence_.at<double>(r, c) * label +
+          (1 - shape_confidence_.at<double>(r, c)) *
+              color_probability_.at<double>(r, c);
     }
   }
 }

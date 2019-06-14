@@ -3,15 +3,20 @@
 class GMM
 {
 public:
-    static const int componentsCount = 5;
+    static const int componentsCount = 3;
 
-    GMM( cv::Mat& _model );
-    double operator()( const cv::Vec3d color ) const;
-    double operator()( int ci, const cv::Vec3d color ) const;
-    int whichComponent( const cv::Vec3d color ) const;
+    GMM();
+
+    double operator()(const cv::Vec3d color) const;
+
+    double operator()(int ci, const cv::Vec3d color) const;
+
+    int whichComponent(const cv::Vec3d color) const;
 
     void initLearning();
+
     void addSample( int ci, const cv::Vec3d color );
+    
     void endLearning();
 
 private:

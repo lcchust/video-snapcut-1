@@ -1,17 +1,10 @@
 #include "gmm.hpp"
 
-GMM::GMM(cv::Mat& _model) {
+GMM::GMM() {
+  
   const int modelSize = 3 /*mean*/ + 9 /*covariance*/ + 1 /*component weight*/;
-  if (_model.empty()) {
-    _model.create(1, modelSize * componentsCount, CV_64FC1);
-    _model.setTo(cv::Scalar(0));
-  } else if ((_model.type() != CV_64FC1) || (_model.rows != 1) ||
-             (_model.cols != modelSize * componentsCount))
-    CV_Error(CV_StsBadArg,
-             "_model must have CV_64FC1 type, rows == 1 and cols == "
-             "13*componentsCount");
 
-  model = _model;
+  model = cv::Mat(1, modelSize * componentsCount, CV_64FC1, cv::Scalar(0.0));
 
   coefs = model.ptr<double>(0);
   mean = coefs + componentsCount;
