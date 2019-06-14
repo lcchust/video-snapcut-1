@@ -32,6 +32,7 @@ SOURCES += \
         myfold.cpp \
         myline.cpp \
         ../tester/opencvtester.cpp \
+        ../tester/graphcuttester.cpp \
         shape.cpp
 
 HEADERS += \
@@ -41,6 +42,8 @@ HEADERS += \
         myfold.h \
         myline.h \
         ../tester/opencvtester.h \
+        ../tester/graphcuttester.h \
+        ../tester/gcgraph.hpp \
         shape.h
 
 FORMS += \

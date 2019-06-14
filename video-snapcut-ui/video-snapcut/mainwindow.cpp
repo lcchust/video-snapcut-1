@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "../tester/opencvtester.h"
+#include "../tester/graphcuttester.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -26,12 +27,15 @@ MainWindow::MainWindow(QWidget *parent) :
     openAction->setStatusTip(tr("Open an existing file"));
     connect(openAction, &QAction::triggered, this, &MainWindow::open);
 
-    test1Action = new QAction(tr("&Test Motion Estimation..."), this);
+    test1Action = new QAction(tr("&Test Motion Estimation"), this);
     connect(test1Action, &QAction::triggered, this, &MainWindow::test_motion_estimation);
+    test2Action = new QAction(tr("&Test GraphCut"), this);
+    connect(test2Action, &QAction::triggered, this, &MainWindow::test_graphcut);
 
     QMenu *file = menuBar()->addMenu(tr("&File"));
     file->addAction(openAction);
     file->addAction(test1Action);
+    file->addAction(test2Action);
 
     ui->drawView->show();
 }
@@ -92,4 +96,23 @@ void MainWindow::test_motion_estimation()
 
     b.test_optical_flow(img_out, img_2);
     std::cout << "optical flow: " << t.elapsed() << "ms" << std::endl;
+}
+
+void MainWindow::test_graphcut()
+{
+    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/keyframe/keyframe-01.jpg", CV_LOAD_IMAGE_COLOR);
+    // the reload of prob map may cause loss of precision
+    cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/p_f1.png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat mask;
+    cv::Mat im_out = cv::Mat(img_1.rows, img_1.cols, CV_8UC1);
+
+    img_2.convertTo(img_2, CV_64FC1, 1.0 / 255.0);
+
+    cv::imshow("input1", img_1);
+    cv::imshow("input2", img_2);
+
+    GraphCutTester a(img_1, img_2, mask);
+    a.get_segmentation(im_out);
+    cv::imshow("result", im_out);
+    cv::waitKey(0);
 }

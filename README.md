@@ -1,7 +1,7 @@
 # video-SnapCut
 Advance in Computer Graphics Research final project
 
-### papers for selection
+#### papers for selection
 
 - [ ] [Video Object Cut and Paste](https://www.cs.cmu.edu/~efros/courses/AP06/Papers/li-siggraph-05.pdf) SIGGRAPH 2005
 
@@ -9,18 +9,23 @@ Advance in Computer Graphics Research final project
 
 - [x] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009 (let's go with this)
 
+
+
 ## Roadmap
 
-7.6.12 TODOs
+6.12 TODOs
+
 - [ ] initialize first frame
-- [ ] feature detection on second, affine transformation
-- [ ] optical flow
+- [x] feature detection on second, affine transformation
+- [x] optical flow
 - [ ] update shape model
 - [ ] update color model
 - [ ] merge window 
 - [ ] cut out final foreground mask(graphcut)
 
-### Critical Steps
+
+
+## Critical Steps
 
 #### localized classifiers
 

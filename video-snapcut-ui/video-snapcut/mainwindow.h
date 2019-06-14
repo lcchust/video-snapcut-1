@@ -24,6 +24,7 @@ public:
 private slots:
     void open();
     void test_motion_estimation();
+    void test_graphcut();
 
 private:
     Ui::MainWindow *ui;
@@ -32,7 +33,7 @@ private:
     QImage *curImage;
     QGraphicsPixmapItem pixmapItem;
 
-    QAction *openAction, *test1Action;
+    QAction *openAction, *test1Action, *test2Action;
     QFileDialog *fileDiolog;
     QString path;
 };
