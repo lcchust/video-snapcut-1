@@ -103,7 +103,7 @@ void MainWindow::test_graphcut()
     cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/keyframe/keyframe-01.jpg", CV_LOAD_IMAGE_COLOR);
     // the reload of prob map may cause loss of precision
     cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/p_f1.png", CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat mask;
+    cv::Mat mask, mask_out;
     cv::Mat im_out = cv::Mat(img_1.rows, img_1.cols, CV_8UC1);
 
     img_2.convertTo(img_2, CV_64FC1, 1.0 / 255.0);
@@ -113,6 +113,9 @@ void MainWindow::test_graphcut()
 
     GraphCutTester a(img_1, img_2, mask);
     a.get_segmentation(im_out);
-    cv::imshow("result", im_out);
+
+    img_1.copyTo(mask_out, im_out);
+    cv::imshow("result_mask", im_out);
+    cv::imshow("result", mask_out);
     cv::waitKey(0);
 }
