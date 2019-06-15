@@ -16,11 +16,6 @@ public:
     void startDraw(QGraphicsSceneMouseEvent *event);
     void drawing(QGraphicsSceneMouseEvent *event);
     void endDraw(QGraphicsSceneMouseEvent *event);
-
-    std::list<QPoint>& getPoints();
-
-private:
-    std::list<QPoint> points;
 };
 
 #endif // MYFOLD_H

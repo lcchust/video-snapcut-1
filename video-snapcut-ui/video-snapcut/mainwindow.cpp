@@ -16,9 +16,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // drawView
     drawScene = new DrawScene(ui->drawView);
     //drawScene->setSceneRect(ui->drawView->rect());
-    pixmapItem.setZValue(0);
-    drawScene->addItem(&pixmapItem);
+    //pixmapItem.setZValue(0);
+    //drawScene->addItem(&pixmapItem);
     ui->drawView->setScene(drawScene);
+    ui->drawView->setMouseTracking(true);
     ui->drawView->setRenderHint(QPainter::Antialiasing);
 
     // Menu
@@ -36,6 +37,13 @@ MainWindow::MainWindow(QWidget *parent) :
     file->addAction(openAction);
     file->addAction(test1Action);
     file->addAction(test2Action);
+
+    // button icons
+    ui->stopButton->setIcon(QApplication::style()->standardIcon((enum QStyle::StandardPixmap)61));
+    ui->fwdButton->setIcon(QApplication::style()->standardIcon((enum QStyle::StandardPixmap)66));
+    ui->fwdOnceButton->setIcon(QApplication::style()->standardIcon((enum QStyle::StandardPixmap)64));
+    ui->bwdButton->setIcon(QApplication::style()->standardIcon((enum QStyle::StandardPixmap)67));
+    ui->bwdOnceButton->setIcon(QApplication::style()->standardIcon((enum QStyle::StandardPixmap)65));
 
     ui->drawView->show();
 }
@@ -67,11 +75,12 @@ void MainWindow::open()
 
             cv::Mat inputImage = cv::imread(path.toStdString());
             cv::cvtColor(inputImage, inputImage, CV_BGR2RGB);
-            QImage img = QImage((const unsigned char*)(inputImage.data),
+            QImage* img = new QImage((const unsigned char*)(inputImage.data),
                                 inputImage.cols, inputImage.rows,
                                 inputImage.cols * inputImage.channels(),
                                 QImage::Format_RGB888);
-            pixmapItem.setPixmap(QPixmap::fromImage(img));
+            drawScene->getPixmapItem()->setPixmap(QPixmap::fromImage(*img));
+            drawScene->setImage(img);
             drawScene->setImgSize(inputImage.cols, inputImage.rows);
             //ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
         } else {
@@ -100,10 +109,10 @@ void MainWindow::test_motion_estimation()
 
 void MainWindow::test_graphcut()
 {
-    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/keyframe/keyframe-01.jpg", CV_LOAD_IMAGE_COLOR);
+    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/keyframe/keyframe-02.jpg", CV_LOAD_IMAGE_COLOR);
     // the reload of prob map may cause loss of precision
-    cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/p_f1.png", CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat mask, mask_out;
+    cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/p_2.png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat mask_out, mask;
     cv::Mat im_out = cv::Mat(img_1.rows, img_1.cols, CV_8UC1);
 
     img_2.convertTo(img_2, CV_64FC1, 1.0 / 255.0);
@@ -111,11 +120,43 @@ void MainWindow::test_graphcut()
     cv::imshow("input1", img_1);
     cv::imshow("input2", img_2);
 
-    GraphCutTester a(img_1, img_2, mask);
+    GraphCutTester a(img_1, img_2, mask, uiGamma);
     a.get_segmentation(im_out);
 
     img_1.copyTo(mask_out, im_out);
+
     cv::imshow("result_mask", im_out);
     cv::imshow("result", mask_out);
     cv::waitKey(0);
+}
+
+void MainWindow::on_graphcutGammaSlider_valueChanged(int value)
+{
+    uiGamma = value;
+    std::cout << value << std::endl;
+}
+
+void MainWindow::on_fgdRadius_valueChanged(int value)
+{
+    drawScene->setFgdRadius(value);
+}
+
+void MainWindow::on_bgdRadius_valueChanged(int value)
+{
+    drawScene->setBgdRadius(value);
+}
+
+void MainWindow::on_foregroundTool_clicked()
+{
+    drawScene->setCurrentShape(Shape::Foreground);
+}
+
+void MainWindow::on_backgroundTool_clicked()
+{
+    drawScene->setCurrentShape(Shape::Background);
+}
+
+void MainWindow::on_defaultTool_clicked()
+{
+    drawScene->setCurrentShape(Shape::Fold);
 }

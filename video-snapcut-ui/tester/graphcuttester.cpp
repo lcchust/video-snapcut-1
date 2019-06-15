@@ -2,7 +2,8 @@
 #include <iostream>
 
 GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask):
-    img(_img), probmap(_probmap), mask(_mask), beta(calc_beta())
+    img(_img), probmap(_probmap), mask(_mask),
+    beta(calc_beta()), gamma(10), lambda(90)
 {
 
     std::cout << beta << " " << gamma << std::endl;
@@ -12,14 +13,29 @@ GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask)
     cv::Mat upW = cv::Mat(img.rows, img.cols, CV_64FC1 );
     cv::Mat uprightW = cv::Mat(img.rows, img.cols, CV_64FC1);
 
+    calc_NWeights(leftW, upleftW, upW, uprightW);
+    construct_graph(leftW, upleftW, upW, uprightW);
+
+    graph.maxFlow();
+}
+
+GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask, double _gamma):
+    img(_img), probmap(_probmap), mask(_mask),
+    beta(calc_beta()), gamma(_gamma), lambda(9 * _gamma)
+{
+
+    std::cout << beta << " " << gamma << std::endl;
+
+    cv::Mat leftW = cv::Mat(img.rows, img.cols, CV_64FC1);
+    cv::Mat upleftW = cv::Mat(img.rows, img.cols, CV_64FC1);
+    cv::Mat upW = cv::Mat(img.rows, img.cols, CV_64FC1 );
+    cv::Mat uprightW = cv::Mat(img.rows, img.cols, CV_64FC1);
 
     calc_NWeights(leftW, upleftW, upW, uprightW);
 
-
-    std::cout << leftW <<std::endl;
-    cv::imshow("up", upW);
-    cv::waitKey(0);
-
+//    std::cout << leftW <<std::endl;
+//    cv::imshow("up", upW);
+//    cv::waitKey(0);
 
     construct_graph(leftW, upleftW, upW, uprightW);
     graph.maxFlow();
@@ -52,7 +68,7 @@ double GraphCutTester::calc_beta()
     if (beta <= std::numeric_limits<double>::epsilon())
         beta = 0;
     else
-        beta = 1.f / (2 * beta / (4*img.cols*img.rows - 3*img.cols - 3*img.rows + 2));
+        beta = 1.0f / (2 * beta / (4*img.cols*img.rows - 3*img.cols - 3*img.rows + 2));
 
     return beta;
 }

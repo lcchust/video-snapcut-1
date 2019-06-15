@@ -23,7 +23,3 @@ void MyFold::endDraw(QGraphicsSceneMouseEvent *event)
     path.closeSubpath();
 }
 
-std::list<QPoint>& MyFold::getPoints()
-{
-    return points;
-}

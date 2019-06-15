@@ -8,6 +8,7 @@ class GraphCutTester
 {
 public:
     GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask);
+    GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask, double _gamma);
 
     double calc_beta();
     void calc_NWeights(cv::Mat& leftW, cv::Mat& upleftW, cv::Mat& upW, cv::Mat& uprightW);
@@ -23,8 +24,8 @@ private:
     cv::detail::GCGraph<double> graph;
 
     const double beta;
-    const double gamma = 10;
-    const double lambda = 9 * gamma;
+    const double gamma;
+    const double lambda;
 };
 
 #endif // GRAPHCUTTESTER_H
