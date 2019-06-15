@@ -28,6 +28,8 @@ class Frame {
 
   auto& get_frame() { return frame_; }
 
+  auto& get_frame_lab() { return frame_lab_; }
+
   auto& get_mask() { return mask_; }
 
   auto& get_contours_() { return contours_; }
@@ -35,8 +37,12 @@ class Frame {
   auto& get_windows() { return windows_; }
 
   auto& get_boundary_distance() { return boundary_distance_; }
-  
+
   void initialize_windows();
+
+  void motion_propagate(Frame& prev);
+
+  void update_windows(Frame& prev);
 
   void add_window(cv::Point center);
 
@@ -48,6 +54,8 @@ class Frame {
   void show_windows();
 
  private:
+  cv::Mat geometric_transformation(cv::Mat& img1, cv::Mat& img2, cv::Mat& mask);
+
   static int window_id_cnt_;
   int frame_id_;
   cv::Mat frame_;

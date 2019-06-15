@@ -44,6 +44,10 @@ class LocalWindow {
 
   void integration();
 
+  void update_center(cv::Point center);
+
+  void update_center_optical_flow(cv::Mat& flow);
+
   cv::Mat& get_color_probability_map() { return color_probability_; }
 
   double get_color_confidence() { return color_confidence_; }

@@ -118,7 +118,7 @@ void Frame::initialize_windows() {
     }
   }
   auto start = std::chrono::high_resolution_clock::now();
- 
+
   // initailize windows' info
   // #pragma omp parallel for num_threads(4)
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
@@ -127,10 +127,11 @@ void Frame::initialize_windows() {
     it->second.integration();
   }
   auto end = std::chrono::high_resolution_clock::now();
-  std::cout
-      << "time consumed: "
-      << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-      << "ms" << std::endl;
+  std::cout << "time consumed: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                     start)
+                   .count()
+            << "ms" << std::endl;
 }
 
 void Frame::show_windows() {
@@ -173,4 +174,89 @@ cv::Mat Frame::generate_combined_map() {
     }
   }
   return res;
+}
+
+cv::Mat Frame::geometric_transformation(cv::Mat& img1, cv::Mat& img2,
+                                        cv::Mat& mask) {
+  std::vector<cv::KeyPoint> keypoints1, keypoints2;
+  std::vector<cv::DMatch> matches;
+  cv::Mat descriptors1, descriptors2;
+  cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
+  cv::Ptr<cv::DescriptorExtractor> descriptor = cv::ORB::create();
+  cv::Ptr<cv::DescriptorMatcher> matcher =
+      cv::DescriptorMatcher::create("BruteForce-Hamming");
+
+  detector->detect(img1, keypoints1, mask);
+  detector->detect(img2, keypoints2);
+
+  descriptor->compute(img1, keypoints1, descriptors1);
+  descriptor->compute(img2, keypoints2, descriptors2);
+
+  matcher->match(descriptors1, descriptors2, matches);
+
+  double min_dist = 10000, max_dist = 0;
+  for (int i = 0; i < descriptors1.rows; i++) {
+    double dist = matches[i].distance;
+    if (dist < min_dist) {
+      min_dist = dist;
+    }
+    if (dist > max_dist) {
+      max_dist = dist;
+    }
+  }
+
+  std::vector<cv::Point2f> points1, points2;
+
+  double threshold = std::max(2 * min_dist, 30.0);
+  for (int i = 0; i < descriptors1.rows; i++) {
+    if (matches[i].distance <= threshold) {
+      points1.push_back(keypoints1[matches[i].queryIdx].pt);
+      points2.push_back(keypoints2[matches[i].trainIdx].pt);
+    }
+  }
+
+  cv::Mat H = cv::findHomography(points1, points2);
+  return H;
+}
+
+void Frame::motion_propagate(Frame& prev) {
+  // compute H
+  cv::Mat H = geometric_transformation(prev.frame_, this->frame_, prev.mask_);
+  // warp frame and mask
+  cv::Mat warpped_frame, warpped_mask;
+  cv::warpPerspective(prev.frame_, warpped_frame, H, this->frame_.size());
+  cv::warpPerspective(prev.mask_, warpped_mask, H, prev.mask_.size());
+
+  // update mask
+  this->mask_ = warpped_mask;
+  contours_ = convert_mask_to_contours(mask_);
+  boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
+  
+  // warp window centers
+  std::vector<cv::Point2f> centers;
+  auto& prev_windows = prev.get_windows();
+  for (auto it = prev_windows.begin(); it != prev_windows.end(); ++it) {
+    centers.push_back(it->second.get_center());
+  }
+  std::vector<cv::Point2f> warpped_centers(centers.size());
+  cv::perspectiveTransform(centers, warpped_centers, H);
+  int cnt = 0;
+  for (auto it = prev_windows.begin(); it != prev_windows.end(); ++it) {
+    windows_.emplace(
+        std::make_pair(it->first, LocalWindow(warpped_centers[cnt], *this)));
+    cnt++;
+  }
+
+  // optical flow
+  cv::Mat warped_gray, img_2_gray;
+  cv::cvtColor(warpped_frame, warped_gray, cv::COLOR_BGR2GRAY);
+  cv::cvtColor(this->frame_, img_2_gray, cv::COLOR_BGR2GRAY);
+
+  cv::Mat flow;
+  cv::calcOpticalFlowFarneback(warped_gray, img_2_gray, flow, 0.5, 1, 10, 2,
+                               7, 1.2, 0);
+
+  for (auto it = windows_.begin(); it != windows_.end(); ++it) {
+    it->second.update_center_optical_flow(flow);
+  }
 }

@@ -29,9 +29,9 @@ ffmpeg -skip_frame nokey -i book
 .mov -vsync 0 -r 30 -f image2 keyframe-%02d.jpg
 ```
 - [x] initialize first frame
-- [ ] feature detection on second, affine transformation
-- [ ] optical flow
-- [ ] update shape model
-- [ ] update color model
-- [ ] merge window 
+- [x] feature detection on second, affine transformation
+- [x] optical flow
+- [x] update shape model
+- [x] update color model
+- [x] merge window 
 - [ ] cut out final foreground mask(graphcut)

@@ -181,3 +181,35 @@ void LocalWindow::integration() {
     }
   }
 }
+
+void LocalWindow::update_center(cv::Point center) {
+  center_ = center;
+  base_.x = center_.x - HALF_WINDOW_LENGTH;
+  base_.y = center_.y - HALF_WINDOW_LENGTH;
+}
+
+void LocalWindow::update_center_optical_flow(cv::Mat& flow) {
+  double x_sum = 0.0, y_sum = 0.0;
+  int cnt = 0;
+  for (int r = 0; r < WINDOW_LENGTH; ++r) {
+    for (int c = 0; c < WINDOW_LENGTH; ++c) {
+      int x = base_.x + c;
+      int y = base_.y + r;
+      if (x >= 0 && x <= cur_frame_.mask_.cols && y >= 0 &&
+          y <= cur_frame_.mask_.rows) {
+        if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
+          const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x);
+          x_sum += flowatxy.x;
+          y_sum += flowatxy.y;
+          cnt++;
+        }
+      }
+    }
+  }
+  int displacement_x = std::round(x_sum / cnt);
+  int displacement_y = std::round(y_sum / cnt);
+  center_.x += displacement_x;
+  center_.y += displacement_y;
+  base_.x = center_.x - HALF_WINDOW_LENGTH;
+  base_.y = center_.y - HALF_WINDOW_LENGTH;
+}

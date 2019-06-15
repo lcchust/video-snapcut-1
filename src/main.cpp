@@ -33,14 +33,17 @@ int main(int argc, char* argv[]) {
       cv::Mat mask = imread("../resources/keyframe-01-mask.png", cv::IMREAD_GRAYSCALE);
       frames.emplace_back(frame_cnt, std::move(current_frame), std::move(mask));
       frames[0].initialize_windows();
-      frames[0].show_windows();
-      auto combined_map = frames[0].generate_combined_map();
-      show_probability_map(combined_map);
+      // frames[0].show_windows();
+      
+      
       // save_probability_map(combined_map, "p_f1.png");
     } else {
-      // TODO:
-      // frames.emplace_back(frame_cnt, std::move(current_frame));
-
+      frames.emplace_back(frame_cnt, std::move(current_frame));
+      frames[frame_cnt].motion_propagate(frames[frame_cnt - 1]);
+      frames[frame_cnt].show_windows();
+      // frames[frame_cnt].update_windows(frames[frame_cnt - 1]);
+      // auto combined_map = frames[frame_cnt].generate_combined_map();
+      // show_probability_map(combined_map);
     }
     ++frame_cnt;
   }
