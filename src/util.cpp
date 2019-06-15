@@ -67,3 +67,7 @@ void save_probability_map(cv::Mat& map, const std::string& filename) {
   cv::cvtColor(drawboard, drawboard, cv::COLOR_GRAY2BGR);
   cv::imwrite(filename, drawboard);
 }
+
+void format_mask(cv::Mat& mask) {
+  
+}

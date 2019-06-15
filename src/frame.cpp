@@ -136,6 +136,7 @@ void Frame::initialize_windows() {
 
 void Frame::show_windows() {
   cv::Mat drawboard = frame_.clone();
+  cv::cvtColor(mask_, drawboard, CV_GRAY2BGR);
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
     cv::Point c = it->second.get_center();
     cv::rectangle(drawboard,
@@ -227,8 +228,11 @@ void Frame::motion_propagate(Frame& prev) {
   cv::warpPerspective(prev.frame_, warpped_frame, H, this->frame_.size());
   cv::warpPerspective(prev.mask_, warpped_mask, H, prev.mask_.size());
 
+  assert(warpped_mask.type() == CV_8UC1);
   // update mask
   this->mask_ = warpped_mask;
+  // imshow("fuck", this->mask_);
+  // cv::waitKey(0);
   contours_ = convert_mask_to_contours(mask_);
   boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
   
@@ -258,5 +262,16 @@ void Frame::motion_propagate(Frame& prev) {
 
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
     it->second.update_center_optical_flow(flow);
+  }
+}
+
+void Frame::update_windows(Frame& prev) {
+  for (auto it = prev.windows_.begin(); it != prev.windows_.end(); ++it) {
+    auto search = windows_.find(it->first);
+    if (search != windows_.end()) {
+      search->second.update_color_model(it->second);
+      search->second.update_shape_confidence();
+      search->second.integration();
+    }
   }
 }

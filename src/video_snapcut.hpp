@@ -4,3 +4,4 @@
 #include "window.hpp"
 #include "util.hpp"
 #include "gmm.hpp"
+#include "graphcut.hpp"

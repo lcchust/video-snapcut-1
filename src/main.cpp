@@ -33,17 +33,31 @@ int main(int argc, char* argv[]) {
       cv::Mat mask = imread("../resources/keyframe-01-mask.png", cv::IMREAD_GRAYSCALE);
       frames.emplace_back(frame_cnt, std::move(current_frame), std::move(mask));
       frames[0].initialize_windows();
-      // frames[0].show_windows();
+      frames[0].show_windows();
+      auto combined_map = frames[frame_cnt].generate_combined_map();
       
-      
+      GraphCutTester gc(frames[frame_cnt].get_frame(), combined_map);
+      cv::Mat seg = cv::Mat(frames[frame_cnt].get_frame().rows, frames[frame_cnt].get_frame().cols, CV_8UC1);
+      gc.get_segmentation(seg);
+      imshow("fuck", seg);
       // save_probability_map(combined_map, "p_f1.png");
     } else {
       frames.emplace_back(frame_cnt, std::move(current_frame));
       frames[frame_cnt].motion_propagate(frames[frame_cnt - 1]);
       frames[frame_cnt].show_windows();
-      // frames[frame_cnt].update_windows(frames[frame_cnt - 1]);
-      // auto combined_map = frames[frame_cnt].generate_combined_map();
-      // show_probability_map(combined_map);
+      frames[frame_cnt].update_windows(frames[frame_cnt - 1]);
+      auto combined_map = frames[frame_cnt].generate_combined_map();
+      
+      GraphCutTester gc(frames[frame_cnt].get_frame(), combined_map);
+      cv::Mat seg = cv::Mat(frames[frame_cnt].get_frame().rows, frames[frame_cnt].get_frame().cols, CV_8UC1);
+      gc.get_segmentation(seg);
+      imshow("fuck", seg);
+      cv::Mat aa; 
+      frames[frame_cnt].get_frame().copyTo(aa, seg);
+      imshow("shit", aa );
+      // imshow("shit", frames[frame_cnt].get_frame());
+      show_probability_map(combined_map);
+      
     }
     ++frame_cnt;
   }
