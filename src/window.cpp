@@ -17,7 +17,8 @@ void LocalWindow::update_color_model() {
   init_gmms();
   assign_gmm_component(comp_idx);
   learn_gmm(comp_idx);
-  color_probability_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1);
+  color_probability_ =
+      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
   // color probability and confidence
   double confidence_deno = 0.0;
   double confidence_nume = 0.0;
@@ -25,6 +26,10 @@ void LocalWindow::update_color_model() {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
       auto pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
       uint8_t mask_val = cur_frame_.mask_.at<uint8_t>(y, x);
       double mask_label = mask_val == MASK_FOREGROUND ? 1.0 : 0.0;
@@ -46,12 +51,17 @@ void LocalWindow::update_color_model() {
 }
 
 void LocalWindow::update_shape_confidence() {
-  shape_confidence_ = cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1);
+  shape_confidence_ =
+      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(1.0));
   sigma_shape_ = calculate_sigma_shape(color_confidence_);
   for (int r = 0; r < WINDOW_LENGTH; ++r) {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
       double distance = cur_frame_.boundary_distance_.at<double>(y, x);
       shape_confidence_.at<double>(r, c) =
           1 - std::exp((-distance * distance) / (sigma_shape_ * sigma_shape_));
@@ -75,6 +85,10 @@ void LocalWindow::update_combined_map(cv::Mat& nume_map, cv::Mat& deno_map,
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
       double p_f = integrated_probabitlity_map_.at<double>(r, c);
       cv::Vec2d vec(center_.x - x, center_.y - y);
       double distance = cv::norm(vec);
@@ -95,10 +109,17 @@ void LocalWindow::init_gmms() {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
-      if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
-        fgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
-      } else {
-        bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
+      if (cur_frame_.boundary_distance_.at<double>(y, x) >
+          BOUNDARY_DISTANCE_THRESHOLD) {
+        if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
+          fgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+        } else {
+          bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+        }
       }
     }
   }
@@ -129,6 +150,10 @@ void LocalWindow::assign_gmm_component(cv::Mat& comp_idx) {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
       cv::Vec3d color = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
       comp_idx.at<int>(r, c) =
           cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND
@@ -146,7 +171,10 @@ void LocalWindow::learn_gmm(cv::Mat& comp_idx) {
       for (int c = 0; c < WINDOW_LENGTH; ++c) {
         int x = base_.x + c;
         int y = base_.y + r;
-
+        if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+            y >= cur_frame_.frame_.rows) {
+          continue;
+        }
         if (comp_idx.at<int>(r, c) == ci &&
             cur_frame_.boundary_distance_.at<double>(y, x) >
                 BOUNDARY_DISTANCE_THRESHOLD) {
@@ -176,7 +204,10 @@ void LocalWindow::learn_gmm(
       for (int c = 0; c < WINDOW_LENGTH; ++c) {
         int x = base_.x + c;
         int y = base_.y + r;
-
+        if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+            y >= cur_frame_.frame_.rows) {
+          continue;
+        }
         if (comp_idx.at<int>(r, c) == ci &&
             cur_frame_.boundary_distance_.at<double>(y, x) >
                 BOUNDARY_DISTANCE_THRESHOLD) {
@@ -211,6 +242,10 @@ void LocalWindow::integration() {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
       int label = cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND ? 1 : 0;
       integrated_probabitlity_map_.at<double>(r, c) =
           shape_confidence_.at<double>(r, c) * label +
@@ -233,14 +268,15 @@ void LocalWindow::update_center_optical_flow(cv::Mat& flow) {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
-      if (x >= 0 && x <= cur_frame_.mask_.cols && y >= 0 &&
-          y <= cur_frame_.mask_.rows) {
-        if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
-          const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x);
-          x_sum += flowatxy.x;
-          y_sum += flowatxy.y;
-          cnt++;
-        }
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
+      if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
+        const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x);
+        x_sum += flowatxy.x;
+        y_sum += flowatxy.y;
+        cnt++;
       }
     }
   }
@@ -259,9 +295,9 @@ void LocalWindow::update_color_model(LocalWindow& prev) {
   learn_gmm(comp_idx, prev.foreground_samples_, prev.background_samples_);
 
   cv::Mat color_probability_old =
-      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1);
+      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
   cv::Mat color_probability_new =
-      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1);
+      cv::Mat(WINDOW_LENGTH, WINDOW_LENGTH, CV_64FC1, cv::Scalar(0.0));
   double confidence_deno = 0.0;
   double confidence_nume_old = 0.0;
   double confidence_nume_new = 0.0;
@@ -269,11 +305,14 @@ void LocalWindow::update_color_model(LocalWindow& prev) {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
       int x = base_.x + c;
       int y = base_.y + r;
+      if (x < 0 || x >= cur_frame_.frame_.cols || y < 0 ||
+          y >= cur_frame_.frame_.rows) {
+        continue;
+      }
       auto pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
       uint8_t mask_val = cur_frame_.mask_.at<uint8_t>(y, x);
       double mask_label = mask_val == MASK_FOREGROUND ? 1.0 : 0.0;
       double distance = cur_frame_.boundary_distance_.at<double>(y, x);
-    
       double p_f_old = prev.foreground_gmm_(pixel);
       double p_b_old = prev.background_gmm_(pixel);
       double p_f_new = foreground_gmm_(pixel);
@@ -287,7 +326,6 @@ void LocalWindow::update_color_model(LocalWindow& prev) {
       double weight = weight_function(distance);
       confidence_nume_old += (std::abs(mask_label - p_c_old) * weight);
       confidence_nume_new += (std::abs(mask_label - p_c_new) * weight);
-      
       confidence_deno += weight;
     }
   }
@@ -304,7 +342,6 @@ void LocalWindow::update_color_model(LocalWindow& prev) {
     color_confidence_ = 1 - confidence_nume_new / confidence_deno;
     color_probability_ = color_probability_new;
   }
-  
 }
 
 int LocalWindow::count_foreground_pixels(cv::Mat& color_probability_map) {

@@ -70,6 +70,7 @@ void Frame::remove_window(int idx) {
 }
 
 void Frame::initialize_windows() {
+  windows_.clear();
   for (auto& contour : contours_) {
     cv::Point prev, cur;
     double distance = 0.0;
@@ -274,4 +275,10 @@ void Frame::update_windows(Frame& prev) {
       search->second.integration();
     }
   }
+}
+
+void Frame::update_mask(cv::Mat& mask) {
+  mask_ = mask.clone();
+  contours_ = convert_mask_to_contours(mask_);
+  boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
 }

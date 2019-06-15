@@ -48,7 +48,7 @@ void show_probability_map(cv::Mat& map) {
   cv::Mat drawboard;
   tmp.convertTo(drawboard, CV_8U);
   cv::cvtColor(drawboard, drawboard, cv::COLOR_GRAY2BGR);
-    while (true) {
+  while (true) {
     cv::imshow(windowname, drawboard);
     int key = cv::waitKey(1) & 0xFF;
     if (key == 27) {
