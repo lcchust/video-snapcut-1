@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 #include <opencv2/opencv.hpp>
 #include <unordered_map>
 #include "util.hpp"
@@ -10,6 +11,8 @@ cv::Mat convert_mask_to_boundary_distance(
     cv::Mat& mask, std::vector<std::vector<cv::Point>>& contours);
 
 cv::Mat convert_bgr_to_lab(cv::Mat& img);
+
+std::pair<double, cv::Vec2f> direction_to_contours(std::vector<std::vector<cv::Point>>& contours, cv::Point center);
 
 class Frame {
  public:
@@ -44,6 +47,8 @@ class Frame {
 
   void update_windows(Frame& prev);
 
+  void move_windows();
+
   void add_window(cv::Point center);
 
   void remove_window(int idx);
@@ -56,10 +61,12 @@ class Frame {
   // opencv Function
   void show_windows();
 
+  
+  static int window_id_cnt_;
+  
  private:
   cv::Mat geometric_transformation(cv::Mat& img1, cv::Mat& img2, cv::Mat& mask);
 
-  static int window_id_cnt_;
   int frame_id_;
   cv::Mat frame_;
   cv::Mat frame_lab_;

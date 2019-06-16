@@ -39,11 +39,10 @@ std::string cv_type_to_string(int type) {
   return r;
 }
 
-
 void show_probability_map(cv::Mat& map) {
   assert(map.type() == CV_64FC1);
   cv::Mat tmp = map.clone();
-  
+
   tmp *= 255.0;
   cv::Mat drawboard;
   tmp.convertTo(drawboard, CV_8U);
@@ -60,7 +59,7 @@ void show_probability_map(cv::Mat& map) {
 void save_probability_map(cv::Mat& map, const std::string& filename) {
   assert(map.type() == CV_64FC1);
   cv::Mat tmp = map.clone();
-  
+
   tmp *= 255.0;
   cv::Mat drawboard;
   tmp.convertTo(drawboard, CV_8U);
@@ -68,6 +67,6 @@ void save_probability_map(cv::Mat& map, const std::string& filename) {
   cv::imwrite(filename, drawboard);
 }
 
-void format_mask(cv::Mat& mask) {
-  
+double cross2d(cv::Vec2d a, cv::Vec2d b) {
+  return a.val[0] * b.val[1] - b.val[0] * a.val[1];
 }

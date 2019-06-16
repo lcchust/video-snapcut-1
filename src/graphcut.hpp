@@ -22,7 +22,7 @@ private:
     cv::detail::GCGraph<double> graph;
 
     const double beta;
-    const double gamma = 50;
+    const double gamma = 100;
     const double lambda = 9 * gamma;
 };
 
