@@ -10,6 +10,7 @@
 #include <QGraphicsPixmapItem>
 
 #include <drawscene.h>
+#include "../../src/run.hpp"
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +25,10 @@ public:
     ~MainWindow();
 
 private slots:
+
     void open();
+    void openDir();
+
     void test_motion_estimation();
     void test_graphcut();
 
@@ -35,14 +39,18 @@ private slots:
     void on_backgroundTool_clicked();
     void on_defaultTool_clicked();
 
+    void on_fwdOnceButton_clicked();
+
 private:
     Ui::MainWindow *ui;
+    Run* runner;
 
     DrawScene *drawScene;
     QImage *curImage;
     QGraphicsPixmapItem pixmapItem;
 
-    QAction *openAction, *test1Action, *test2Action;
+    QAction *openAction, *openDirAction;
+    QAction *test1Action, *test2Action;
     QFileDialog *fileDiolog;
     QString path;
 

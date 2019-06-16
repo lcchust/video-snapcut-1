@@ -7,23 +7,25 @@
 class GraphCutTester
 {
 public:
-    GraphCutTester(cv::Mat& _img, cv::Mat& _probmap);
+    GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask);
+    GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask, double _gamma);
 
     double calc_beta();
     void calc_NWeights(cv::Mat& leftW, cv::Mat& upleftW, cv::Mat& upW, cv::Mat& uprightW);
     void construct_graph(const cv::Mat& leftW, const cv::Mat& upleftW,
-                          const cv::Mat& upW, const cv::Mat& uprightW);
+                         const cv::Mat& upW, const cv::Mat& uprightW);
     void get_segmentation(cv::Mat& segmask);
 
 private:
     cv::Mat& img;
     cv::Mat& probmap;
+    cv::Mat& mask;
 
     cv::detail::GCGraph<double> graph;
 
     const double beta;
-    const double gamma = 50;
-    const double lambda = 9 * gamma;
+    const double gamma;
+    const double lambda;
 };
 
 #endif // GRAPHCUTTESTER_H

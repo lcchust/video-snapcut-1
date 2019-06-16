@@ -1,11 +1,35 @@
 #include "graphcut.hpp"
 #include <iostream>
 
-GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap)
-    : img(_img), probmap(_probmap), beta(calc_beta()) {
+GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask)
+    : img(_img), probmap(_probmap), mask(_mask),
+      beta(calc_beta()), gamma(50), lambda(450) {
+
+  assert(mask.type() == CV_8UC1);
+  assert(probmap.type() == CV_64FC1);
+
   cv::Mat leftW = cv::Mat(img.rows, img.cols, CV_64FC1);
   cv::Mat upleftW = cv::Mat(img.rows, img.cols, CV_64FC1);
   cv::Mat upW = cv::Mat(img.rows, img.cols, CV_64FC1);
+  cv::Mat uprightW = cv::Mat(img.rows, img.cols, CV_64FC1);
+
+  calc_NWeights(leftW, upleftW, upW, uprightW);
+  construct_graph(leftW, upleftW, upW, uprightW);
+  graph.maxFlow();
+}
+
+GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask, double _gamma):
+    img(_img), probmap(_probmap), mask(_mask),
+    beta(calc_beta()), gamma(_gamma), lambda(9 * _gamma)
+{
+  std::cout << beta << " " << gamma << std::endl;
+
+  assert(mask.type() == CV_8UC1);
+  assert(probmap.type() == CV_64FC1);
+
+  cv::Mat leftW = cv::Mat(img.rows, img.cols, CV_64FC1);
+  cv::Mat upleftW = cv::Mat(img.rows, img.cols, CV_64FC1);
+  cv::Mat upW = cv::Mat(img.rows, img.cols, CV_64FC1 );
   cv::Mat uprightW = cv::Mat(img.rows, img.cols, CV_64FC1);
 
   calc_NWeights(leftW, upleftW, upW, uprightW);
@@ -40,7 +64,7 @@ double GraphCutTester::calc_beta() {
     beta = 0;
   else
     beta = 1.f / (2 * beta /
-                  (4 * img.cols * img.rows - 3 * img.cols - 3 * img.rows + 2));
+                 (4 * img.cols * img.rows - 3 * img.cols - 3 * img.rows + 2));
 
   return beta;
 }
@@ -101,6 +125,14 @@ void GraphCutTester::construct_graph(const cv::Mat& leftW,
       // set t-weights
       double toSink = -log(probmap.at<double>(r, c));
       double fromSource = -log(1.0 - probmap.at<double>(r, c));
+
+      if (mask.at<uint8_t>(r, c) == 255) {
+        toSink = 0;
+        fromSource = lambda;
+      } else if (mask.at<uint8_t>(r, c) == 0) {
+        toSink = lambda;
+        fromSource = 0;
+      }
       graph.addTermWeights(vtxIdx, fromSource, toSink);
 
       // set n-weights

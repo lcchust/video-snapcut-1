@@ -22,7 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++14
 
 SOURCES += \
         drawpanel.cpp \
@@ -32,8 +32,14 @@ SOURCES += \
         myfold.cpp \
         myline.cpp \
         ../tester/opencvtester.cpp \
-        ../tester/graphcuttester.cpp \
-        shape.cpp
+       # ../tester/graphcuttester.cpp \
+        shape.cpp \
+        ../../src/window.cpp \
+        ../../src/frame.cpp \
+        ../../src/util.cpp \
+        ../../src/gmm.cpp \
+        ../../src/graphcut.cpp \
+        ../../src/run.cpp \
 
 HEADERS += \
         drawpanel.h \
@@ -42,9 +48,17 @@ HEADERS += \
         myfold.h \
         myline.h \
         ../tester/opencvtester.h \
-        ../tester/graphcuttester.h \
-        ../tester/gcgraph.hpp \
-        shape.h
+       # ../tester/graphcuttester.h \
+       #  ../tester/gcgraph.hpp \
+        shape.h \
+        ../../src/window.hpp \
+        ../../src/frame.hpp \
+        ../../src/util.hpp \
+        ../../src/gmm.hpp \
+        ../../src/video_snapcut.hpp \
+        ../../src/graphcut.hpp \
+        ../../src/run.hpp \
+        ../../src/gcgraph.hpp \
 
 FORMS += \
         mainwindow.ui

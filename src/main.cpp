@@ -20,7 +20,6 @@ const char* format_string = "../resources/Frames1/%d.jpg";
 const char* format_string_out = "../resources/Frames1/keyframeseg-%02d.jpg";
 const char* format_string_prob = "../resources/Frames1/keyframeprob-%02d.jpg";
 
-
 int main(int argc, char* argv[]) {
   cv::namedWindow(windowname, CV_WINDOW_AUTOSIZE);
   std::vector<Frame> frames;

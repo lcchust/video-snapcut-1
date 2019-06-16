@@ -6,9 +6,14 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsRectItem>
+
+#include <opencv2/opencv.hpp>
+
 #include "shape.h"
 #include "myline.h"
 #include "myfold.h"
+#include "../../src/frame.hpp"
+#include "../../src/run.hpp"
 
 class DrawScene : public QGraphicsScene
 {
@@ -21,8 +26,18 @@ public:
     void setFgdRadius(int _r);
     void setBgdRadius(int _r);
 
+    void showImageFromDisk(std::string path);
+    void showImageFromOpenCV(cv::Mat& cvImage);
+    void showMagnify();
+    void unshowMagnify();
+
+    void setRunner(Run *_runner);
+    void setCurFrame(Frame *_frame);
+    void showCurFrame();
+
 public slots:
     void setCurrentShape(Shape::Code s) {
+        std::cout << " [set]: now set mode to: " << s << std::endl;
         curShapeCode = s;
     }
 
@@ -38,18 +53,20 @@ private:
 
     QGraphicsPixmapItem *pixmapItem = nullptr;
     QImage *img = nullptr;
+    int imgX, imgY;
 
     QGraphicsRectItem *magnify = nullptr;
     QGraphicsRectItem colors[9][9];
 
-    int imgX, imgY;
     int fgdRadius = 2;
     int bgdRadius = 2;
 
-    std::list<MyLine*> fgdList, bgdList;
+    Run* runner = nullptr;
+    Frame* curFrame = nullptr;
 
     void maskGenerator(QPainterPath& maskPath);
     void usermaskGenerator();
+    QImage matToQImage(const cv::Mat& mat);
 };
 
 #endif // DRAWSCENE_H

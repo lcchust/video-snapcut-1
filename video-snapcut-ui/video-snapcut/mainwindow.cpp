@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "../tester/opencvtester.h"
-#include "../tester/graphcuttester.h"
+#include "../../src/graphcut.hpp"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,9 +15,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // drawView
     drawScene = new DrawScene(ui->drawView);
-    //drawScene->setSceneRect(ui->drawView->rect());
-    //pixmapItem.setZValue(0);
-    //drawScene->addItem(&pixmapItem);
     ui->drawView->setScene(drawScene);
     ui->drawView->setMouseTracking(true);
     ui->drawView->setRenderHint(QPainter::Antialiasing);
@@ -28,6 +25,11 @@ MainWindow::MainWindow(QWidget *parent) :
     openAction->setStatusTip(tr("Open an existing file"));
     connect(openAction, &QAction::triggered, this, &MainWindow::open);
 
+    openDirAction = new QAction(tr("&Open Dir..."), this);
+    openDirAction->setShortcut(QKeySequence(tr("Alt+O")));
+    openDirAction->setStatusTip(tr("Open a Directory"));
+    connect(openDirAction, &QAction::triggered, this, &MainWindow::openDir);
+
     test1Action = new QAction(tr("&Test Motion Estimation"), this);
     connect(test1Action, &QAction::triggered, this, &MainWindow::test_motion_estimation);
     test2Action = new QAction(tr("&Test GraphCut"), this);
@@ -35,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QMenu *file = menuBar()->addMenu(tr("&File"));
     file->addAction(openAction);
+    file->addAction(openDirAction);
     file->addAction(test1Action);
     file->addAction(test2Action);
 
@@ -62,9 +65,7 @@ void MainWindow::open()
     fileDiolog.setWindowTitle(tr("打开文件"));
 
     QStringList filters;
-    filters << "JPEG(*.jpg *.jpeg *.jpe *.jfif)"
-            << "MP4(*.mp4)"
-            << "PNG(*.png)"
+    filters << "images(*.jpg *.jpeg *.jpe *.jfif *.png)"
             << "ALL FILES(*)";
     fileDiolog.setNameFilters(filters);
 
@@ -72,20 +73,82 @@ void MainWindow::open()
         QString path = fileDiolog.selectedFiles()[0];
         if (path.length()) {
             std::cout << path.toStdString() << std::endl;
-
-            cv::Mat inputImage = cv::imread(path.toStdString());
-            cv::cvtColor(inputImage, inputImage, CV_BGR2RGB);
-            QImage* img = new QImage((const unsigned char*)(inputImage.data),
-                                inputImage.cols, inputImage.rows,
-                                inputImage.cols * inputImage.channels(),
-                                QImage::Format_RGB888);
+            cv::Mat *inputImage = new cv::Mat(cv::imread(path.toStdString()));
+            cv::cvtColor(*inputImage, *inputImage, CV_BGR2RGB);
+            QImage* img = new QImage((const unsigned char*)(inputImage->data),
+                                     inputImage->cols, inputImage->rows,
+                                     inputImage->cols * inputImage->channels(),
+                                     QImage::Format_RGB888);
             drawScene->getPixmapItem()->setPixmap(QPixmap::fromImage(*img));
             drawScene->setImage(img);
-            drawScene->setImgSize(inputImage.cols, inputImage.rows);
+            drawScene->setImgSize(inputImage->cols, inputImage->rows);
+            drawScene->showMagnify();
             //ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
         } else {
             QMessageBox::information(this, tr("打开文件失败"), tr("打开文件失败!"));
         }
+    }
+}
+
+void MainWindow::openDir()
+{
+    drawScene->unshowMagnify();
+    drawScene->setCurrentShape(Shape::None);
+
+    QFileDialog fileDiolog;
+    fileDiolog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDiolog.setViewMode(QFileDialog::Detail);
+    fileDiolog.setFileMode(QFileDialog::Directory);
+    fileDiolog.setWindowTitle(tr("打开文件夹"));
+    fileDiolog.setDirectory(QDir::homePath());
+
+    if (fileDiolog.exec() != QDialog::Accepted) {
+        QMessageBox::information(this, tr("打开文件夹失败"), tr("打开文件夹失败!"));
+    } else {
+        QString dir = fileDiolog.selectedFiles()[0];
+        std::cout << dir.toStdString() << std::endl;
+        runner = new Run(dir.toStdString());
+        drawScene->setRunner(runner);
+    }
+}
+
+void MainWindow::on_graphcutGammaSlider_valueChanged(int value)
+{
+    uiGamma = value;
+    std::cout << value << std::endl;
+}
+
+void MainWindow::on_fgdRadius_valueChanged(int value)
+{
+    drawScene->setFgdRadius(value);
+}
+
+void MainWindow::on_bgdRadius_valueChanged(int value)
+{
+    drawScene->setBgdRadius(value);
+}
+
+void MainWindow::on_foregroundTool_clicked()
+{
+    drawScene->setCurrentShape(Shape::Foreground);
+}
+
+void MainWindow::on_backgroundTool_clicked()
+{
+    drawScene->setCurrentShape(Shape::Background);
+}
+
+void MainWindow::on_defaultTool_clicked()
+{
+    drawScene->setCurrentShape(Shape::Fold);
+}
+
+void MainWindow::on_fwdOnceButton_clicked()
+{
+    if (runner != nullptr) {
+        runner->forward();
+        drawScene->setCurFrame(runner->getCurFrame());
+        drawScene->showCurFrame();
     }
 }
 
@@ -128,35 +191,4 @@ void MainWindow::test_graphcut()
     cv::imshow("result_mask", im_out);
     cv::imshow("result", mask_out);
     cv::waitKey(0);
-}
-
-void MainWindow::on_graphcutGammaSlider_valueChanged(int value)
-{
-    uiGamma = value;
-    std::cout << value << std::endl;
-}
-
-void MainWindow::on_fgdRadius_valueChanged(int value)
-{
-    drawScene->setFgdRadius(value);
-}
-
-void MainWindow::on_bgdRadius_valueChanged(int value)
-{
-    drawScene->setBgdRadius(value);
-}
-
-void MainWindow::on_foregroundTool_clicked()
-{
-    drawScene->setCurrentShape(Shape::Foreground);
-}
-
-void MainWindow::on_backgroundTool_clicked()
-{
-    drawScene->setCurrentShape(Shape::Background);
-}
-
-void MainWindow::on_defaultTool_clicked()
-{
-    drawScene->setCurrentShape(Shape::Fold);
 }

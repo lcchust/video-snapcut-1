@@ -50,11 +50,13 @@ Frame::Frame(int frame_id, cv::Mat&& frame, cv::Mat&& mask)
   contours_ = convert_mask_to_contours(mask_);
   frame_lab_ = convert_bgr_to_lab(frame_);
   boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
+  user_mask_ = cv::Mat(frame_.rows, frame_.cols, CV_8UC1, cv::Scalar(127));
 }
 
 Frame::Frame(int frame_id, cv::Mat&& frame)
     : frame_id_(frame_id), frame_(std::move(frame)) {
   frame_lab_ = convert_bgr_to_lab(frame_);
+  user_mask_ = cv::Mat(frame_.rows, frame_.cols, CV_8UC1, cv::Scalar(127));
 }
 
 void Frame::add_window(cv::Point center) {
@@ -281,4 +283,25 @@ void Frame::update_mask(cv::Mat& mask) {
   mask_ = mask.clone();
   contours_ = convert_mask_to_contours(mask_);
   boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
+}
+
+void Frame::update_user_mask(cv::Mat &mask) {
+  user_mask_ = mask.clone();
+}
+
+QImage* Frame::getQImage() {
+    cv::Mat *inputImage = new cv::Mat;
+    cv::cvtColor(frame_, *inputImage, CV_BGR2RGB);
+    QImage* img = new QImage((const unsigned char*)(inputImage->data),
+                             inputImage->cols, inputImage->rows,
+                             inputImage->cols * inputImage->channels(),
+                             QImage::Format_RGB888);
+    return img;
+}
+
+void Frame::addfgd(MyLine *line)
+{
+    std::cout << line << std::endl;
+    fgdList.push_back(line);
+    std::cout << "fuck" << std::endl;
 }
