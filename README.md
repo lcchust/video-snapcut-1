@@ -9,21 +9,33 @@ Advance in Computer Graphics Research final project
 
 - [x] [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf) SIGGRAPH 2009 (let's go with this)
 
+## types
+
+frame(img): CV_8UC3
+mask: CV_8UC1
+frame_lab: CV_32FC3
+boundry_distance: CV_64FC1
+
+window:
+
+foreground_gmm_mat_: CV_32FC1 
+shape_confidence_: CV_64FC1
 
 
 ## Roadmap
 
-6.12 TODOs
-
-- [ ] initialize first frame
+- [x] use command to extract key frames from original video
+```bash
+ffmpeg -skip_frame nokey -i book
+.mov -vsync 0 -r 30 -f image2 keyframe-%02d.jpg
+```
+- [x] initialize first frame
 - [x] feature detection on second, affine transformation
 - [x] optical flow
-- [ ] update shape model
-- [ ] update color model
-- [ ] merge window 
+- [x] update shape model
+- [x] update color model
+- [x] merge window 
 - [ ] cut out final foreground mask(graphcut)
-
-
 
 ## Critical Steps
 
@@ -77,7 +89,5 @@ For frame $I_t$, we have:
 3. object cutout
 
    * full-frame foreground probabilities computed from overlaping windows
-
    * pixel-level Graph Cut to generate $L^{t+1}(x)$
-
    * use this newly generated mask iteratively perform Step2: update local models and Step3: object cutout
