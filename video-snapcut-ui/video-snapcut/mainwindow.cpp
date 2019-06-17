@@ -49,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->bwdOnceButton->setIcon(QApplication::style()->standardIcon((enum QStyle::StandardPixmap)65));
 
     ui->drawView->show();
+
+    test_alpha_matting();
 }
 
 MainWindow::~MainWindow()
@@ -128,6 +130,11 @@ void MainWindow::on_bgdRadius_valueChanged(int value)
     drawScene->setBgdRadius(value);
 }
 
+void MainWindow::on_horizontalSlider_2_valueChanged(int value)
+{
+    drawScene->setOutlineRadius(value);
+}
+
 void MainWindow::on_foregroundTool_clicked()
 {
     drawScene->setCurrentShape(Shape::Foreground);
@@ -143,21 +150,39 @@ void MainWindow::on_defaultTool_clicked()
     drawScene->setCurrentShape(Shape::Fold);
 }
 
+void MainWindow::on_outlineTool_clicked()
+{
+    drawScene->clearOutline();
+    drawScene->setCurrentShape(Shape::Outline);
+}
+
 void MainWindow::on_fwdOnceButton_clicked()
 {
     if (runner != nullptr) {
         runner->forward();
         drawScene->setCurFrame(runner->getCurFrame());
         drawScene->showCurFrame();
+        drawScene->clearUserPath();
+    }
+}
+
+void MainWindow::on_fwdButton_clicked()
+{
+    if (runner != nullptr) {
+        while (runner->forward()) {
+            drawScene->setCurFrame(runner->getCurFrame());
+            drawScene->showCurFrame();
+            drawScene->clearUserPath();
+        }
     }
 }
 
 void MainWindow::test_motion_estimation()
 {
     OpencvTester b;
-    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/rotobrush-reference/rotobrush-bcheng1996/Frames1/1.jpg", CV_LOAD_IMAGE_COLOR);
-    cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/rotobrush-reference/rotobrush-bcheng1996/Frames1/2.jpg", CV_LOAD_IMAGE_COLOR);
-    cv::Mat mask = cv::imread("/Users/97littleleaf11/Desktop/hehe.png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/keyframe-01.jpg", CV_LOAD_IMAGE_COLOR);
+    cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/keyframe-02.jpg", CV_LOAD_IMAGE_COLOR);
+    cv::Mat mask = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/mask-1.png", CV_LOAD_IMAGE_GRAYSCALE);
     cv::Mat img_out = cv::Mat::zeros(img_1.size(), CV_8UC3);
 
     QTime t;
@@ -191,4 +216,47 @@ void MainWindow::test_graphcut()
     cv::imshow("result_mask", im_out);
     cv::imshow("result", mask_out);
     cv::waitKey(0);
+}
+
+void MainWindow::test_alpha_matting()
+{
+    SharedMatting sm;
+    sm.loadImage("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/keyframe-03.jpg");
+    sm.loadTrimap("/Users/97littleleaf11/Desktop/hahahaha.png");
+    sm.solveAlpha();
+    sm.save("/Users/97littleleaf11/Desktop/gethahahahah.png");
+
+    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/keyframe-03.jpg", CV_LOAD_IMAGE_COLOR);
+    cv::Mat alpha = cv::imread("/Users/97littleleaf11/Desktop/gethahahahah.png", CV_LOAD_IMAGE_COLOR);
+    img_1.convertTo(img_1, CV_32FC3);
+    alpha.convertTo(alpha, CV_32FC3, 1.0/255);
+    multiply(alpha, img_1, img_1);
+    cv::imwrite("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/alpht-cut-cut-03.png", img_1);
+}
+
+void MainWindow::get_cut()
+{
+    cv::Mat img_1 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/keyframe-01.jpg", CV_LOAD_IMAGE_COLOR);
+    cv::Mat img_2 = cv::imread("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/mask.png", CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat mask_out;
+    img_1.copyTo(mask_out, img_2);
+    cv::imwrite("/Users/97littleleaf11/Documents/三 春夏 计算机图形学研究进展/book/keyframe/cut-01.png", mask_out);
+}
+
+void MainWindow::on_cutoutImageButton_clicked()
+{
+    drawScene->setCurrentShowMode(DrawScene::Seg);
+    drawScene->showCurFrame();
+}
+
+void MainWindow::on_maskButton_clicked()
+{
+    drawScene->setCurrentShowMode(DrawScene::Cut);
+    drawScene->showCurFrame();
+}
+
+void MainWindow::on_originalImageButton_clicked()
+{
+    drawScene->setCurrentShowMode(DrawScene::Origin);
+    drawScene->showCurFrame();
 }

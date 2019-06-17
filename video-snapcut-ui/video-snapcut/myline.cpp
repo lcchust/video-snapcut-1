@@ -2,7 +2,6 @@
 
 MyLine::MyLine()
 {
-
 }
 
 void MyLine::startDraw(QGraphicsSceneMouseEvent *event)

@@ -20,7 +20,7 @@ const double BACKGROUND_THRESHOLD = 0.25;
 const int SIGMA_C = 25;
 const int SIGMA_MIN = 2;
 const int SIGMA_MAX = 50;
-const double F_CUTOFF = 0.85;
+const double F_CUTOFF = 0.65;
 const int R = 2;
 
 const double ELIPSON = 0.1;

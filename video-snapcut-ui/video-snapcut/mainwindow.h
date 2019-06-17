@@ -31,15 +31,23 @@ private slots:
 
     void test_motion_estimation();
     void test_graphcut();
+    void test_alpha_matting();
+    void get_cut();
 
     void on_graphcutGammaSlider_valueChanged(int value);
     void on_fgdRadius_valueChanged(int value);
     void on_bgdRadius_valueChanged(int value);
+    void on_horizontalSlider_2_valueChanged(int value);
     void on_foregroundTool_clicked();
     void on_backgroundTool_clicked();
     void on_defaultTool_clicked();
 
     void on_fwdOnceButton_clicked();
+    void on_fwdButton_clicked();
+    void on_cutoutImageButton_clicked();
+    void on_maskButton_clicked();
+    void on_originalImageButton_clicked();
+    void on_outlineTool_clicked();
 
 private:
     Ui::MainWindow *ui;

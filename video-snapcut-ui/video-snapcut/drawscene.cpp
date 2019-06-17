@@ -27,11 +27,15 @@ DrawScene::DrawScene(QObject *parent):
     pixmapItem = new QGraphicsPixmapItem;
     pixmapItem->setZValue(0);
     this->addItem(pixmapItem);
+
+    bgdColor.setRgb(223, 60, 36, 128);
+    fgdColor.setRgb(118, 206, 110, 128);
+    outlineColor.setRgb(72, 156, 240, 128);
 }
 
 void DrawScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (curFrame == nullptr)
+    if (curFrame == nullptr && curShapeCode != Shape::Fold)
         return;
 
     std::cout << curFrame << std::endl;
@@ -39,9 +43,8 @@ void DrawScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch(curShapeCode) {
         case Shape::Foreground: {
             MyLine *line = new MyLine;
-            std::cout << "before push" << std::endl;
             curFrame->addfgd(line);
-            std::cout << "after push" << std::endl;
+            line->setShowPen(QPen(fgdColor, fgdRadius));
             line->setPen(QPen(Qt::white, fgdRadius));
             curItem = line;
             break;
@@ -49,8 +52,22 @@ void DrawScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         case Shape::Background: {
             MyLine *line = new MyLine;
             curFrame->bgdList.push_back(line);
+            line->setShowPen(QPen(bgdColor, bgdRadius));
             line->setPen(QPen(Qt::black, bgdRadius));
             curItem = line;
+            break;
+        }
+        case Shape::Outline: {
+            if (event->button() == Qt::RightButton) {
+                trimapGenerator();
+                clearOutline();
+            } else {
+                MyLine *line = new MyLine;
+                outlines.push_back(line);
+                line->setShowPen(QPen(outlineColor, outLineRadius));
+                line->setPen(QPen(Qt::gray, outLineRadius));
+                curItem = line;
+            }
             break;
         }
         case Shape::Fold: {
@@ -59,15 +76,17 @@ void DrawScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     curItem->endDraw(event);
                 if (lastPath != nullptr) {
                     this->removeItem((QGraphicsItem *)lastPath);
-                    lastPath = addPath(curItem->getPath(), curItem->getPen());
+                    lastPath = addPath(curItem->getPath(), curItem->getShowPen());
                 }
                 maskGenerator(curItem->getPath());
+                this->removeItem((QGraphicsItem *)lastPath);
                 lastPath = nullptr;
                 curItem = nullptr;
             } else {
                 if (curItem == nullptr) {
+                    std::cout << "begin draw outline!" << std::endl;
                     MyFold *fold = new MyFold;
-                    fold->setPen(QPen(Qt::black, 3));
+                    fold->setShowPen(QPen(Qt::black, 3));
                     curItem = fold;
                 }
             }
@@ -78,7 +97,7 @@ void DrawScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         curItem->startDraw(event);
         if (lastPath != nullptr)
             this->removeItem((QGraphicsItem *)lastPath);
-        lastPath = addPath(curItem->getPath(), curItem->getPen());
+        lastPath = addPath(curItem->getPath(), curItem->getShowPen());
     }
     std::cout << "scene:" << event->scenePos().x() << " " << event->scenePos().y() << std::endl;
     std::cout << "screen:" << event->screenPos().x() << " " << event->screenPos().y() << std::endl;
@@ -91,7 +110,7 @@ void DrawScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         curItem->drawing(event);
         if (lastPath != nullptr) {
             this->removeItem((QGraphicsItem *)lastPath);
-            lastPath = addPath(curItem->getPath(), curItem->getPen());
+            lastPath = addPath(curItem->getPath(), curItem->getShowPen());
         }
     }
 
@@ -148,9 +167,16 @@ void DrawScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 //    }
 
     if (curShapeCode == Shape::Foreground || curShapeCode == Shape::Background) {
+        curPath.push_back(lastPath);
+        this->removeItem((QGraphicsItem *)lastPath);
         lastPath = nullptr;
         curItem = nullptr;
         usermaskGenerator();
+    }
+    else if (curShapeCode == Shape::Outline) {
+        outlinesPaths.push_back(lastPath);
+        lastPath = nullptr;
+        curItem = nullptr;
     }
 
     QGraphicsScene::mouseReleaseEvent(event);
@@ -208,8 +234,43 @@ void DrawScene::usermaskGenerator()
     cv::Mat tmp = cv::Mat(mask.height(), mask.width(), CV_8UC3, (void*)mask.constBits(), mask.bytesPerLine());
     cv::cvtColor(tmp, tmp, CV_BGR2GRAY);
     curFrame->update_user_mask(tmp);
-    if (runner != nullptr)
+    if (runner != nullptr) {
         runner->redo();
+        showCurFrame();
+    }
+}
+
+void DrawScene::trimapGenerator()
+{
+    if (curFrame == nullptr) {
+        std::cout << "No image!" << std::endl;
+        return;
+    }
+
+    QImage mask(runner->getCurFrameSegPath(curFrame).c_str());
+    QPainter p(&mask);
+
+    for (MyLine *line: outlines) {
+        p.setPen(line->getPen());
+        line->draw(&p);
+    }
+    p.end();
+
+    bool saved = mask.save("/Users/97littleleaf11/Desktop/hahahaha.png", "png");
+    if (saved) {
+        std::cout << "  [OK!]: trimap saved!" << std::endl;
+    } else {
+        std::cout << "  [Wrong]: failed to save trimap" << std::endl;
+    }
+
+//    SharedMatting sm;
+//    std::string path = runner->getCurFramePath(curFrame);
+//    char fileAddr[64] = {0};
+//    sprintf(fileAddr, path.c_str());
+//    sm.loadImage(fileAddr);
+//    sm.loadTrimap("/Users/97littleleaf11/Desktop/hahahaha.png");
+//    sm.solveAlpha();
+//    sm.save("/Users/97littleleaf11/Desktop/gethahahahah.png");
 }
 
 void DrawScene::setImgSize(int x, int y)
@@ -240,6 +301,11 @@ void DrawScene::setBgdRadius(int _r)
     bgdRadius = _r;
 }
 
+void DrawScene::setOutlineRadius(int _r)
+{
+    outLineRadius = _r;
+}
+
 void DrawScene::showMagnify()
 {
     magnify->show();
@@ -263,8 +329,8 @@ void DrawScene::showImageFromDisk(std::string path)
     img->load(QString(path.c_str()));
     getPixmapItem()->setPixmap(QPixmap::fromImage(*img));
     setImage(img);
-    setImgSize(img->rect().x(), img->rect().y());
-    std::cout << img->rect().x() << " " << img->rect().y() << std::endl;
+    setImgSize(img->rect().width(), img->rect().height());
+    std::cout << img->rect().width() << " " << img->rect().height() << std::endl;
 }
 
 void DrawScene::showImageFromOpenCV(cv::Mat& cvImage)
@@ -334,5 +400,31 @@ void DrawScene::showCurFrame()
 //    setImage(img);
 //    setImgSize(img->rect().x(), img->rect().y());
 
-    showImageFromOpenCV(curFrame->get_frame());
+    switch (curShowMode) {
+    case Origin:
+        showImageFromOpenCV(curFrame->get_frame());
+        break;
+    case Seg:
+        showImageFromDisk(runner->getCurFrameSegPath(curFrame));
+        break;
+    case Cut:
+        showImageFromDisk(runner->getCurFrameCutPath(curFrame));
+        break;
+    }
+}
+
+void DrawScene::clearUserPath()
+{
+    for (QGraphicsPathItem *path: curPath)
+        this->removeItem((QGraphicsItem *)path);
+    curPath.clear();
+    clearOutline();
+}
+
+void DrawScene::clearOutline()
+{
+    for (QGraphicsPathItem *path: outlinesPaths)
+        this->removeItem((QGraphicsItem *)path);
+    outlines.clear();
+    outlinesPaths.clear();
 }

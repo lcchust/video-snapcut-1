@@ -14,7 +14,8 @@ public:
         None,
         Fold,
         Foreground,
-        Background
+        Background,
+        Outline
     };
 
     Shape();
@@ -25,10 +26,13 @@ public:
     QPainterPath& getPath();
     std::list<QPoint>& getPoints();
     void setPen(QPen _pen);
+    void setShowPen(QPen _pen);
     QPen getPen();
+    QPen getShowPen();
 
 protected:
     QPen pen;
+    QPen showpen;
     QPainterPath path;
     std::list<QPoint> points;
 };

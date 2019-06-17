@@ -56,12 +56,13 @@ void OpencvTester::test_ORB_pos_estimation(cv::Mat& img_1, cv::Mat& img_2, cv::M
     }
 
 // display matches
-//    cv::Mat img_match;
-//    cv::Mat img_goodmatch;
+    cv::Mat img_match;
+    cv::Mat img_goodmatch;
 //    cv::drawMatches(img_1, keypoints_1, img_2, keypoints_2, match, img_match);
-//    cv::drawMatches(img_1, keypoints_1, img_2, keypoints_2, matches, img_goodmatch);
+    cv::drawMatches(img_1, keypoints_1, img_2, keypoints_2, matches, img_goodmatch);
 //    cv::imshow("all matches", img_match);
 //    cv::imshow("good matches", img_goodmatch);
+    cv::imwrite("/Users/97littleleaf11/Desktop/match.png", img_goodmatch);
 
     cv::Mat h = cv::findHomography(points_1, points_2);
     cv::warpPerspective(img_1, im_out, h, img_2.size());
@@ -86,10 +87,12 @@ void OpencvTester::test_optical_flow(cv::Mat &img_warped, cv::Mat &img_2)
     for (int y = 0; y < img_warped.rows; y += 5) {
          for (int x = 0; x < img_warped.cols; x += 5) {
               const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x) * 10;
-              cv::line(img_2_saved, cv::Point(x, y), cv::Point(cvRound(x + flowatxy.x), cvRound(y + flowatxy.y)), cv::Scalar(255,0,0));
+              cv::line(img_2_saved, cv::Point(x, y), cv::Point(cvRound(x + flowatxy.x), cvRound(y + flowatxy.y)), cv::Scalar(0,0,255));
               cv::circle(img_2_saved, cv::Point(x, y), 1, cv::Scalar(0, 0, 0), -1);
          }
     }
+
+    cv::imwrite("/Users/97littleleaf11/Desktop/optical_flow.png", img_2_saved);
 
     cv::imshow("prev_gray", img_warped_gray);
     cv::imshow("cur_gray", img_2_gray);

@@ -11,10 +11,13 @@ class Run
 {
 public:
     Run(std::string _path);
-    void forward();
+    bool forward();
     void redo();
     Frame* getCurFrame();
-    std::string getCurFramePath();
+
+    std::string getCurFramePath(Frame *frame);
+    std::string getCurFrameSegPath(Frame *frame);
+    std::string getCurFrameCutPath(Frame *frame);
 
 private:
 

@@ -110,9 +110,16 @@ void Frame::initialize_windows() {
             distance = d;
           }
         } else {
+          double offset = WINDOW_INTERVAL - distance;
           distance += d;
           if (distance >= WINDOW_INTERVAL) {
-            add_window(cur);
+            cv::Point2d tmp(prev.x, prev.y);
+            cv::Vec2d direction = cv::Vec2d(cur.x - prev.x, cur.y - prev.y);
+            direction /= cv::norm(direction);
+            tmp.x += (direction[0] * offset);
+            tmp.y += (direction[1] * offset);
+            cv::Point tmp_center = tmp;
+            add_window(tmp_center);
             distance = distance - WINDOW_INTERVAL;
           }
         }
@@ -162,6 +169,10 @@ cv::Mat Frame::generate_combined_map() {
   cv::Mat nume(frame_.rows, frame_.cols, CV_64FC1, cv::Scalar(0.0));
   cv::Mat count(frame_.rows, frame_.cols, CV_8UC1, cv::Scalar(0));
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
+    cv::Point center = it->second.get_center();
+    if (boundary_distance_.at<double>(center) > HALF_WINDOW_LENGTH) {
+      continue;
+    }
     it->second.update_combined_map(nume, deno, count);
   }
   for (int r = 0; r < res.rows; ++r) {
@@ -272,6 +283,10 @@ void Frame::update_windows(Frame& prev) {
   for (auto it = prev.windows_.begin(); it != prev.windows_.end(); ++it) {
     auto search = windows_.find(it->first);
     if (search != windows_.end()) {
+      cv::Point center = search->second.get_center();
+      if (boundary_distance_.at<double>(center) > HALF_WINDOW_LENGTH) {
+        continue;
+      }
       search->second.update_color_model(it->second);
       search->second.update_shape_confidence();
       search->second.integration();

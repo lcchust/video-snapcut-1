@@ -3,7 +3,7 @@
 
 GraphCutTester::GraphCutTester(cv::Mat& _img, cv::Mat& _probmap, cv::Mat& _mask)
     : img(_img), probmap(_probmap), mask(_mask),
-      beta(calc_beta()), gamma(50), lambda(450) {
+      beta(calc_beta()), gamma(100), lambda(450) {
 
   assert(mask.type() == CV_8UC1);
   assert(probmap.type() == CV_64FC1);

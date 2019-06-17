@@ -32,6 +32,7 @@ SOURCES += \
         myfold.cpp \
         myline.cpp \
         ../tester/opencvtester.cpp \
+        ../tester/sharedmatting.cpp \
        # ../tester/graphcuttester.cpp \
         shape.cpp \
         ../../src/window.cpp \
@@ -48,6 +49,7 @@ HEADERS += \
         myfold.h \
         myline.h \
         ../tester/opencvtester.h \
+        ../tester/sharedmatting.h \
        # ../tester/graphcuttester.h \
        #  ../tester/gcgraph.hpp \
         shape.h \

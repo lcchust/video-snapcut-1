@@ -113,14 +113,12 @@ void LocalWindow::init_gmms() {
           y >= cur_frame_.frame_.rows) {
         continue;
       }
-      if (cur_frame_.boundary_distance_.at<double>(y, x) >
-          BOUNDARY_DISTANCE_THRESHOLD) {
-        if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
+      if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
           fgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
-        } else {
+      } else {
           bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
-        }
       }
+
     }
   }
   assert(!fgdSamples.empty() && !bgdSamples.empty());
@@ -331,6 +329,7 @@ void LocalWindow::update_color_model(LocalWindow& prev) {
   }
   int old_cnt = count_foreground_pixels(color_probability_old);
   int old_new = count_foreground_pixels(color_probability_new);
+//  if (true) {
   if (old_cnt > old_new) {
     foreground_gmm_ = prev.foreground_gmm_;
     background_gmm_ = prev.background_gmm_;

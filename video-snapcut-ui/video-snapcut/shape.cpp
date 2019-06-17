@@ -24,3 +24,13 @@ QPen Shape::getPen()
     return pen;
 }
 
+void Shape::setShowPen(QPen _pen)
+{
+    showpen = _pen;
+}
+
+QPen Shape::getShowPen()
+{
+    return showpen;
+}
+
