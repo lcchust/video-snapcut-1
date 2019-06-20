@@ -42,6 +42,97 @@ cv::Mat convert_bgr_to_lab(cv::Mat& img) {
   return res;
 }
 
+std::pair<double, cv::Vec2f> direction_to_contours(
+    std::vector<std::vector<cv::Point>>& contours, cv::Point center) {
+  double distance = 10000.0;
+  cv::Vec2f direction(0.0, 0.0);
+  cv::Point2d p = center;
+  bool is_line = false;
+  cv::Point2d line[2];
+  cv::Point2d point;
+  // for ()
+  for (auto& contour : contours) {
+    cv::Point2d p1 = contour[0], p2;
+    double distance_p_p1 = cv::norm(p - p1);
+    for (int i = 1; i < contour.size(); ++i) {
+      p2 = contour[i];
+      double distance_p_p2 = cv::norm(p - p2);
+
+      cv::Vec2d p1_p = p - p1;
+      cv::Vec2d p1_p2 = p2 - p1;
+      cv::Vec2d p2_p = p - p2;
+      if (p1_p.ddot(p1_p2) < 0) {
+        if (distance_p_p1 < distance) {
+          is_line = false;
+          point = p1;
+          distance = distance_p_p1;
+        }
+      } else if (p2_p.ddot(p1_p2) > 0) {
+        if (distance_p_p2 < distance) {
+          is_line = false;
+          point = p2;
+          distance = distance_p_p2;
+        }
+      } else {
+        double distance_p_line =
+            std::abs(cross2d(p1_p, p1_p2) / cv::norm(p1 - p2));
+        if (distance_p_line < distance) {
+          is_line = true;
+          line[0] = p1;
+          line[1] = p2;
+          distance = distance_p_line;
+        }
+      }
+      p1 = p2;
+      distance_p_p1 = distance_p_p2;
+    }
+    p2 = contour[0];
+    double distance_p_p2 = cv::norm(p - p2);
+
+    cv::Vec2d p1_p = p - p1;
+    cv::Vec2d p1_p2 = p2 - p1;
+    cv::Vec2d p2_p = p - p2;
+    if (p1_p.ddot(p1_p2) < 0) {
+      if (distance_p_p1 < distance) {
+        is_line = false;
+        point = p1;
+        distance = distance_p_p1;
+      }
+    } else if (p2_p.dot(p1_p2) > 0) {
+      if (distance_p_p2 < distance) {
+        is_line = false;
+        point = p2;
+        distance = distance_p_p2;
+      }
+    } else {
+      double distance_p_line =
+          std::abs(cross2d(p1_p, p1_p2) / cv::norm(p1 - p2));
+      if (distance_p_line < distance) {
+        is_line = true;
+        line[0] = p1;
+        line[1] = p2;
+        distance = distance_p_line;
+      }
+    }
+  }
+  if (is_line) {
+    cv::Vec3d p1_p = cv::Vec3d((p - line[0]).x, (p - line[0]).y, 0);
+    cv::Vec3d p1_p2 =
+        cv::Vec3d((line[1] - line[0]).x, (line[1] - line[0]).y, 0);
+    cv::Vec3d tmp = p1_p.cross(p1_p2);
+    cv::Vec3d direction3d = tmp.cross(p1_p2);
+    direction = cv::Vec2d(direction3d.val[0], direction3d.val[1]);
+    direction /= cv::norm(direction);
+  } else {
+    direction = cv::Vec2d((point - p).x, (point - p).y);
+    direction /= cv::norm(direction);
+  }
+  if (distance == 0.0) {
+    direction = cv::Vec2f(0, 0);
+  }
+  return std::make_pair(distance, direction);
+}
+
 int Frame::window_id_cnt_ = 0;
 
 Frame::Frame(int frame_id, cv::Mat&& frame, cv::Mat&& mask)
@@ -146,7 +237,6 @@ void Frame::initialize_windows() {
 
 void Frame::show_windows() {
   cv::Mat drawboard = frame_.clone();
-  cv::cvtColor(mask_, drawboard, CV_GRAY2BGR);
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
     cv::Point c = it->second.get_center();
     cv::rectangle(drawboard,
@@ -299,6 +389,17 @@ void Frame::update_mask(cv::Mat& mask) {
   contours_ = convert_mask_to_contours(mask_);
   boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
 }
+
+void Frame::move_windows() {
+  for (auto it = windows_.begin(); it != windows_.end(); ++it) {
+    cv::Point center = it->second.get_center();
+    auto res = direction_to_contours(contours_, center);
+    cv::Point displacement =
+        cv::Point(res.first * res.second.val[0], res.first * res.second.val[1]);
+    center.x += displacement.x;
+    center.y += displacement.y;
+    it->second.update_center(center);
+  }
 
 void Frame::update_user_mask(cv::Mat &mask) {
   user_mask_ = mask.clone();

@@ -11,4 +11,4 @@ void show_probability_map(cv::Mat& map);
 
 void save_probability_map(cv::Mat& map, const std::string& filename);
 
-void format_mask(cv::Mat& mask);
+double cross2d(cv::Vec2d a, cv::Vec2d b);
