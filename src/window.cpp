@@ -118,8 +118,12 @@ void LocalWindow::init_gmms() {
       } else {
           bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
       }
-
     }
+  }
+  if (fgdSamples.empty() || bgdSamples.empty()) {
+    std::cout << "center: " << center_
+              << " dis: " << cur_frame_.boundary_distance_.at<double>(center_)
+              << std::endl;
   }
   assert(!fgdSamples.empty() && !bgdSamples.empty());
   cv::Mat _bgdSamples((int)bgdSamples.size(), 3, CV_32FC1, &bgdSamples[0][0]);
@@ -175,7 +179,7 @@ void LocalWindow::learn_gmm(cv::Mat& comp_idx) {
         }
         if (comp_idx.at<int>(r, c) == ci &&
             cur_frame_.boundary_distance_.at<double>(y, x) >
-                BOUNDARY_DISTANCE_THRESHOLD) {
+                BOUNDARY_DISTANCE_THRESHOLD + 2.5) {
           cv::Vec3f pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
           if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
             foreground_gmm_.addSample(ci, pixel);
@@ -271,10 +275,13 @@ void LocalWindow::update_center_optical_flow(cv::Mat& flow) {
         continue;
       }
       if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
-        const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x);
-        x_sum += flowatxy.x;
-        y_sum += flowatxy.y;
-        cnt++;
+        if (cur_frame_.boundary_distance_.at<double>(y, x) >
+            FOREGROUND_THRESHOLD) {
+          const cv::Point2f flowatxy = flow.at<cv::Point2f>(y, x);
+          x_sum += flowatxy.x;
+          y_sum += flowatxy.y;
+          cnt++;
+        }
       }
     }
   }
@@ -329,8 +336,7 @@ void LocalWindow::update_color_model(LocalWindow& prev) {
   }
   int old_cnt = count_foreground_pixels(color_probability_old);
   int old_new = count_foreground_pixels(color_probability_new);
-//  if (true) {
-  if (old_cnt > old_new) {
+  if (old_cnt < old_new) {
     foreground_gmm_ = prev.foreground_gmm_;
     background_gmm_ = prev.background_gmm_;
     foreground_samples_ = prev.foreground_samples_;
@@ -347,7 +353,7 @@ int LocalWindow::count_foreground_pixels(cv::Mat& color_probability_map) {
   int cnt = 0;
   for (int r = 0; r < WINDOW_LENGTH; ++r) {
     for (int c = 0; c < WINDOW_LENGTH; ++c) {
-      if (color_probability_map.at<double>(r, c) > FOREGROUND_THRESHOLD) {
+      if (color_probability_map.at<double>(r, c) == 1.0) {
         ++cnt;
       }
     }

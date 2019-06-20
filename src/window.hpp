@@ -66,6 +66,10 @@ class LocalWindow {
 
   auto& get_bg_samples() { return background_samples_; }
 
+  auto& get_integrated_probabitlity_map() {
+    return integrated_probabitlity_map_;
+  }
+
  private:
   void init_gmms();
   void assign_gmm_component(cv::Mat& comp_idx);
