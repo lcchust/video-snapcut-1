@@ -339,7 +339,7 @@ void Frame::motion_propagate(Frame& prev) {
   // cv::waitKey(0);
   contours_ = convert_mask_to_contours(mask_);
   boundary_distance_ = convert_mask_to_boundary_distance(mask_, contours_);
-  
+
   // warp window centers
   std::vector<cv::Point2f> centers;
   auto& prev_windows = prev.get_windows();
@@ -361,8 +361,8 @@ void Frame::motion_propagate(Frame& prev) {
   cv::cvtColor(this->frame_, img_2_gray, cv::COLOR_BGR2GRAY);
 
   cv::Mat flow;
-  cv::calcOpticalFlowFarneback(warped_gray, img_2_gray, flow, 0.5, 1, 10, 2,
-                               7, 1.2, 0);
+  cv::calcOpticalFlowFarneback(warped_gray, img_2_gray, flow, 0.5, 1, 10, 2, 7,
+                               1.2, 0);
 
   for (auto it = windows_.begin(); it != windows_.end(); ++it) {
     it->second.update_center_optical_flow(flow);
@@ -422,3 +422,4 @@ void Frame::addfgd(MyLine *line)
     fgdList.push_back(line);
     std::cout << "fuck" << std::endl;
 }
+

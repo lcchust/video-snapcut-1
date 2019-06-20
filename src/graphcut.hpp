@@ -24,6 +24,7 @@ private:
     cv::detail::GCGraph<double> graph;
 
     const double beta;
+  
     const double gamma;
     const double lambda;
 };

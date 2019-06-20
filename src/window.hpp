@@ -8,9 +8,9 @@ class Frame;
 const int MASK_FOREGROUND = 255;
 const int MASK_BACKGROUND = 0;
 
-const int WINDOW_LENGTH = 40;
-const int HALF_WINDOW_LENGTH = 20;
-const double WINDOW_INTERVAL = 27;  // 2/3 of WINDOW_LENGTH
+const int WINDOW_LENGTH = 50;
+const int HALF_WINDOW_LENGTH = 25;
+const double WINDOW_INTERVAL = 34;  // 2/3 of WINDOW_LENGTH
 const int COLOR_COMPONENT = 3;
 
 const double BOUNDARY_DISTANCE_THRESHOLD = 5.0;

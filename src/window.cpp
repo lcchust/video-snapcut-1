@@ -114,9 +114,9 @@ void LocalWindow::init_gmms() {
         continue;
       }
       if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
-          fgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+        fgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
       } else {
-          bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
+        bgdSamples.push_back(cur_frame_.frame_lab_.at<cv::Vec3f>(y, x));
       }
     }
   }
@@ -212,7 +212,7 @@ void LocalWindow::learn_gmm(
         }
         if (comp_idx.at<int>(r, c) == ci &&
             cur_frame_.boundary_distance_.at<double>(y, x) >
-                BOUNDARY_DISTANCE_THRESHOLD) {
+                BOUNDARY_DISTANCE_THRESHOLD + 2.5) {
           cv::Vec3f pixel = cur_frame_.frame_lab_.at<cv::Vec3f>(y, x);
           if (cur_frame_.mask_.at<uint8_t>(y, x) == MASK_FOREGROUND) {
             foreground_gmm_.addSample(ci, pixel);
