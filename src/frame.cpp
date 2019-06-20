@@ -400,6 +400,7 @@ void Frame::move_windows() {
     center.y += displacement.y;
     it->second.update_center(center);
   }
+}
 
 void Frame::update_user_mask(cv::Mat &mask) {
   user_mask_ = mask.clone();
