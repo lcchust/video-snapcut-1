@@ -1,4 +1,4 @@
-# video-SnapCut
+# Video-SnapCut
 
 Video-SnapCut is the course project for Advance in Computer Graphics, Zhejiang Unviersity. In this project, we have reimplemented the video object segmentation system describe in [Video SnapCut: Robust Video Object Cutout Using Localized Classifiers](http://juew.org/publication/VideoSnapCut_lr.pdf).
 
