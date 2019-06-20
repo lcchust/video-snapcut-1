@@ -13,7 +13,7 @@ public:
     double calc_beta();
     void calc_NWeights(cv::Mat& leftW, cv::Mat& upleftW, cv::Mat& upW, cv::Mat& uprightW);
     void construct_graph(const cv::Mat& leftW, const cv::Mat& upleftW,
-                         const cv::Mat& upW, const cv::Mat& uprightW);
+                          const cv::Mat& upW, const cv::Mat& uprightW);
     void get_segmentation(cv::Mat& segmask);
 
 private:
@@ -24,7 +24,6 @@ private:
     cv::detail::GCGraph<double> graph;
 
     const double beta;
-  
     const double gamma;
     const double lambda;
 };

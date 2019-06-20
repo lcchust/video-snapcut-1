@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "util.hpp"
 #include "window.hpp"
+#include <list>
+#include "../video-snapcut-ui/video-snapcut/myline.h"
 
 std::vector<std::vector<cv::Point>> convert_mask_to_contours(cv::Mat& mask);
 
@@ -31,6 +33,8 @@ class Frame {
 
   auto& get_frame() { return frame_; }
 
+  auto& get_user_mask() { return user_mask_; }
+
   auto& get_frame_lab() { return frame_lab_; }
 
   auto& get_mask() { return mask_; }
@@ -55,15 +59,21 @@ class Frame {
 
   void update_mask(cv::Mat& mask);
 
+  void update_user_mask(cv::Mat& mask);
+
   cv::Mat generate_combined_map();
   
   void generate(cv::Mat& res);
   // opencv Function
   void show_windows();
 
-  
   static int window_id_cnt_;
-  
+
+  QImage* getQImage();
+
+  std::list<MyLine*> fgdList, bgdList;
+  void addfgd(MyLine *);
+
  private:
   cv::Mat geometric_transformation(cv::Mat& img1, cv::Mat& img2, cv::Mat& mask);
 
@@ -72,6 +82,7 @@ class Frame {
   cv::Mat frame_lab_;
   cv::Mat boundary_distance_;
   cv::Mat mask_;
+  cv::Mat user_mask_;
   std::vector<std::vector<cv::Point>> contours_;
   std::unordered_map<int, LocalWindow> windows_;
 };

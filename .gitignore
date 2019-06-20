@@ -1,6 +1,7 @@
 .vscode/
 *.o
 *.exe
+build-video-snapcut-Desktop_Qt_5_12_3_clang_64bit-Debug
 resources/
 fuck.cpp
 test.cpp
