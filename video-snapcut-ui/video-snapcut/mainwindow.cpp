@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->drawView->show();
 
-    test_alpha_matting();
+    //test_alpha_matting();
 }
 
 MainWindow::~MainWindow()
