@@ -63,6 +63,7 @@ private:
     QString path;
 
     double uiGamma = 10;
+    bool useAlphaMatting = false;
 };
 
 #endif // MAINWINDOW_H

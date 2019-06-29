@@ -70,6 +70,33 @@ void SharedMatting::loadImage(char * filename)
 //    matte = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
     matte.create(Size(width, height), CV_8UC1);
 }
+
+// load image from cv::Mat
+void SharedMatting::loadImage(cv::Mat& img)
+{
+    img.copyTo(pImg);
+    if (!pImg.data) {
+        cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadImage!" << endl;
+        exit(-1);
+    }
+    height     = pImg.rows;
+    width      = pImg.cols;
+    step       = pImg.step1();
+    channels   = pImg.channels();
+
+    data       = (uchar *)pImg.data;
+    unknownIndex  = new int*[height];
+    tri           = new int*[height];
+    alpha         = new int*[height];
+    for (int i = 0; i < height; ++i) {
+        unknownIndex[i] = new int[width];
+        tri[i]          = new int[width];
+        alpha[i]        = new int[width];
+    }
+
+    matte.create(Size(width, height), CV_8UC1);
+}
+
 //载入第三方图像
 void SharedMatting::loadTrimap(char * filename)
 {
@@ -82,6 +109,16 @@ void SharedMatting::loadTrimap(char * filename)
     /*cvNamedWindow("aa");
     cvShowImage("aa", trimap);
     cvWaitKey(0);*/
+}
+
+//载入第三方图像
+void SharedMatting::loadTrimap(std::string path)
+{
+    trimap = imread(path);
+    if (!trimap.data) {
+        cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadTrimap!" << endl;
+        exit(-1);
+    }
 }
 
 void SharedMatting::expandKnown()
@@ -1038,8 +1075,12 @@ void SharedMatting::localSmooth()
 //存储图像
 void SharedMatting::save(char * filename)
 {
-
     imwrite(filename, matte);
+}
+
+cv::Mat& SharedMatting::getMatteMat()
+{
+    return matte;
 }
 
 void SharedMatting::getMatte()

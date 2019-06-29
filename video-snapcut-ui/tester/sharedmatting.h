@@ -24,9 +24,7 @@ struct Tuple
     cv::Scalar b;
     double   sigmaf;
     double   sigmab;
-
     int flag;
-
 };
 
 struct Ftuple
@@ -43,6 +41,11 @@ class SharedMatting
 public:
     SharedMatting();
     ~SharedMatting();
+
+    // for snapcut
+    void loadImage(cv::Mat& img);
+    void loadTrimap(std::string path);
+    cv::Mat& getMatteMat();
 
     void loadImage(char * filename);
     void loadTrimap(char * filename);
@@ -69,8 +72,6 @@ public:
     double distanceColor2(cv::Scalar cs1, cv::Scalar cs2);
     double comalpha(cv::Scalar c, cv::Scalar f, cv::Scalar b);
 
-
-
 private:
 //    IplImage * pImg;
 //    IplImage * trimap;
@@ -95,7 +96,6 @@ private:
     int step;
     int channels;
     uchar* data;
-
 };
 
 

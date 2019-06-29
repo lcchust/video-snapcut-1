@@ -87,7 +87,7 @@ void MainWindow::open()
             drawScene->showMagnify();
             //ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
         } else {
-            QMessageBox::information(this, tr("打开文件失败"), tr("打开文件失败!"));
+            QMessageBox::information(this, tr("Failed to open file"), tr("Failed to open file!"));
         }
     }
 }
@@ -101,11 +101,11 @@ void MainWindow::openDir()
     fileDiolog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDiolog.setViewMode(QFileDialog::Detail);
     fileDiolog.setFileMode(QFileDialog::Directory);
-    fileDiolog.setWindowTitle(tr("打开文件夹"));
+    fileDiolog.setWindowTitle(tr("Open Folder"));
     fileDiolog.setDirectory(QDir::homePath());
 
     if (fileDiolog.exec() != QDialog::Accepted) {
-        QMessageBox::information(this, tr("打开文件夹失败"), tr("打开文件夹失败!"));
+        QMessageBox::information(this, tr("Failed to open folder"), tr("Failed to open folder!"));
     } else {
         QString dir = fileDiolog.selectedFiles()[0];
         std::cout << dir.toStdString() << std::endl;

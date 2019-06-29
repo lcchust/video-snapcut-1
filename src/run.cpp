@@ -1,5 +1,6 @@
 #include "run.hpp"
 #include <QMessageBox>
+#include "../video-snapcut-ui/tester/sharedmatting.h"
 
 #define BEGIN_NUM 1
 
@@ -15,6 +16,7 @@ Run::Run(std::string _path)
     format_string_prob = _path + "/frameprob-%02d.png";
     format_string_cut = _path + "/cut-%02d.png";
     mask_path = _path + "/mask.png";
+    trimap_path = _path + "/trimap.png";
 }
 
 bool Run::forward()
@@ -151,9 +153,25 @@ void Run::redo()
     std::cout << "  [OK!] finish redo" << std::endl;
 }
 
+void Run::doAlphaMatting(Frame *frame)
+{
+    SharedMatting sm;
+    sm.loadImage(frame->get_frame());
+    sm.loadTrimap(trimap_path);
+    sm.solveAlpha();
+    sm.save("/Users/97littleleaf11/Desktop/todayTri.png");
+
+    cv::Mat img_1;
+    frame->get_frame().convertTo(img_1, CV_32FC3);
+    cv::Mat alpha = cv::imread("/Users/97littleleaf11/Desktop/todayTri.png", CV_LOAD_IMAGE_COLOR);
+    alpha.convertTo(alpha, CV_32FC3, 1.0/255);
+    multiply(alpha, img_1, img_1);
+    cv::imwrite("/Users/97littleleaf11/Documents/Desktop/alpht-cut-cut-03.png", img_1);
+}
+
 Frame* Run::getCurFrame()
 {
-    std::cout << "inside runner frames[" << frame_cnt << "]: " << &(frames[frame_cnt - 1]) << std::endl;
+    //std::cout << "inside runner frames[" << frame_cnt << "]: " << &(frames[frame_cnt - 1]) << std::endl;
     return &(frames[frame_cnt - 1]);
 }
 
