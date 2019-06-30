@@ -70,7 +70,33 @@ void SharedMatting::loadImage(char * filename)
 //    matte = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
     matte.create(Size(width, height), CV_8UC1);
 }
-//载入第三方图像
+
+// load image from cv::Mat
+void SharedMatting::loadImage(cv::Mat& img)
+{
+    img.copyTo(pImg);
+    if (!pImg.data) {
+        cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadImage!" << endl;
+        exit(-1);
+    }
+    height     = pImg.rows;
+    width      = pImg.cols;
+    step       = pImg.step1();
+    channels   = pImg.channels();
+
+    data       = (uchar *)pImg.data;
+    unknownIndex  = new int*[height];
+    tri           = new int*[height];
+    alpha         = new int*[height];
+    for (int i = 0; i < height; ++i) {
+        unknownIndex[i] = new int[width];
+        tri[i]          = new int[width];
+        alpha[i]        = new int[width];
+    }
+
+    matte.create(Size(width, height), CV_8UC1);
+}
+
 void SharedMatting::loadTrimap(char * filename)
 {
     trimap = imread(filename);
@@ -82,6 +108,24 @@ void SharedMatting::loadTrimap(char * filename)
     /*cvNamedWindow("aa");
     cvShowImage("aa", trimap);
     cvWaitKey(0);*/
+}
+
+void SharedMatting::loadTrimap(std::string path)
+{
+    trimap = imread(path);
+    if (!trimap.data) {
+        cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadTrimap!" << endl;
+        exit(-1);
+    }
+}
+
+void SharedMatting::loadTrimap(cv::Mat& img)
+{
+    img.convertTo(trimap, CV_8UC3);
+    if (!trimap.data) {
+        cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadTrimap!" << endl;
+        exit(-1);
+    }
 }
 
 void SharedMatting::expandKnown()
@@ -1038,8 +1082,12 @@ void SharedMatting::localSmooth()
 //存储图像
 void SharedMatting::save(char * filename)
 {
-
     imwrite(filename, matte);
+}
+
+cv::Mat& SharedMatting::getMatteMat()
+{
+    return matte;
 }
 
 void SharedMatting::getMatte()
@@ -1063,33 +1111,33 @@ void SharedMatting::solveAlpha()
     clock_t start, finish;
     //expandKnown()
     start = clock();
-    cout << "Expanding...";
+    //cout << "Expanding...";
     expandKnown();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 
     //gathering()
     start = clock();
-    cout << "Gathering...";
+    //cout << "Gathering...";
     gathering();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 
     //refineSample()
     start = clock();
-    cout << "Refining...";
+    //cout << "Refining...";
     refineSample();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 
     //localSmooth()
     start = clock();
-    cout << "LocalSmoothing...";
+    //cout << "LocalSmoothing...";
     localSmooth();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 

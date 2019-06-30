@@ -21,6 +21,7 @@ class DrawScene : public QGraphicsScene
 public:
     DrawScene(QObject *parent = nullptr);
     void setImgSize(int x, int y);
+    void setMaskPath(QString path);
 
     QGraphicsPixmapItem* getPixmapItem();
     void setImage(QImage *_img);
@@ -33,9 +34,10 @@ public:
     void showMagnify();
     void unshowMagnify();
 
-    void setRunner(Run *_runner);
+    void setRunner(Run *_runner, bool *_useAlphaMatting);
     void setCurFrame(Frame *_frame);
     void showCurFrame();
+    void showCurFrame(bool showAlpha);
 
     void clearUserPath();
     void clearOutline();
@@ -74,14 +76,15 @@ private:
     QGraphicsRectItem *magnify = nullptr;
     QGraphicsRectItem colors[9][9];
 
-    int fgdRadius = 2;
-    int bgdRadius = 2;
+    int fgdRadius = 8;
+    int bgdRadius = 8;
     int outLineRadius = 6;
 
     std::list<MyLine*> outlines;
     std::list<QGraphicsPathItem *> outlinesPaths;
 
     Run* runner = nullptr;
+    bool* useAlphaMattingPtr = nullptr;
     Frame* curFrame = nullptr;
 
     void maskGenerator(QPainterPath& maskPath);
@@ -90,6 +93,8 @@ private:
     QImage matToQImage(const cv::Mat& mat);
 
     QColor fgdColor, bgdColor, outlineColor;
+
+    QString maskSavePath;
 };
 
 #endif // DRAWSCENE_H

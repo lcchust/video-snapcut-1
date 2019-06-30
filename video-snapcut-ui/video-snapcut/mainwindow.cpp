@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->drawView->show();
 
-    test_alpha_matting();
+    //test_alpha_matting();
 }
 
 MainWindow::~MainWindow()
@@ -60,21 +60,23 @@ MainWindow::~MainWindow()
 
 void MainWindow::open()
 {
-    QFileDialog fileDiolog;
-    fileDiolog.setAcceptMode(QFileDialog::AcceptOpen);
-    fileDiolog.setViewMode(QFileDialog::Detail);
-    fileDiolog.setFileMode(QFileDialog::ExistingFile);
-    fileDiolog.setWindowTitle(tr("打开文件"));
+    QFileDialog fileDialog;
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setViewMode(QFileDialog::Detail);
+    fileDialog.setFileMode(QFileDialog::ExistingFile);
+    fileDialog.setWindowTitle(tr("打开文件"));
 
     QStringList filters;
     filters << "images(*.jpg *.jpeg *.jpe *.jfif *.png)"
             << "ALL FILES(*)";
-    fileDiolog.setNameFilters(filters);
+    fileDialog.setNameFilters(filters);
 
-    if (fileDiolog.exec() == QDialog::Accepted) {
-        QString path = fileDiolog.selectedFiles()[0];
+    if (fileDialog.exec() == QDialog::Accepted) {
+        QString path = fileDialog.selectedFiles()[0];
         if (path.length()) {
             std::cout << path.toStdString() << std::endl;
+            std::cout << "DirPath:" << QFileInfo(path).absoluteDir().absolutePath().toStdString() << std::endl;
+            drawScene->setMaskPath(QFileInfo(path).absoluteDir().absolutePath() + "/mask.png");
             cv::Mat *inputImage = new cv::Mat(cv::imread(path.toStdString()));
             cv::cvtColor(*inputImage, *inputImage, CV_BGR2RGB);
             QImage* img = new QImage((const unsigned char*)(inputImage->data),
@@ -87,7 +89,7 @@ void MainWindow::open()
             drawScene->showMagnify();
             //ui->drawView->fitInView(&pixmapItem, Qt::KeepAspectRatio);
         } else {
-            QMessageBox::information(this, tr("打开文件失败"), tr("打开文件失败!"));
+            QMessageBox::information(this, tr("Failed to open file"), tr("Failed to open file!"));
         }
     }
 }
@@ -101,16 +103,20 @@ void MainWindow::openDir()
     fileDiolog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDiolog.setViewMode(QFileDialog::Detail);
     fileDiolog.setFileMode(QFileDialog::Directory);
-    fileDiolog.setWindowTitle(tr("打开文件夹"));
+    fileDiolog.setWindowTitle(tr("Open Folder"));
     fileDiolog.setDirectory(QDir::homePath());
 
     if (fileDiolog.exec() != QDialog::Accepted) {
-        QMessageBox::information(this, tr("打开文件夹失败"), tr("打开文件夹失败!"));
+        QMessageBox::information(this, tr("Failed to open folder"), tr("Failed to open folder!"));
     } else {
         QString dir = fileDiolog.selectedFiles()[0];
         std::cout << dir.toStdString() << std::endl;
         runner = new Run(dir.toStdString());
-        drawScene->setRunner(runner);
+        drawScene->setRunner(runner, &useAlphaMatting);
+
+        runner->forward();
+        drawScene->setCurFrame(runner->getCurFrame());
+        drawScene->showCurFrame(useAlphaMatting);
     }
 }
 
@@ -160,8 +166,10 @@ void MainWindow::on_fwdOnceButton_clicked()
 {
     if (runner != nullptr) {
         runner->forward();
+        if (useAlphaMatting)
+            runner->doAlphaMatting(runner->getCurFrame());
         drawScene->setCurFrame(runner->getCurFrame());
-        drawScene->showCurFrame();
+        drawScene->showCurFrame(useAlphaMatting);
         drawScene->clearUserPath();
     }
 }
@@ -170,8 +178,10 @@ void MainWindow::on_fwdButton_clicked()
 {
     if (runner != nullptr) {
         while (runner->forward()) {
+            if (useAlphaMatting)
+                runner->doAlphaMatting(runner->getCurFrame());
             drawScene->setCurFrame(runner->getCurFrame());
-            drawScene->showCurFrame();
+            drawScene->showCurFrame(useAlphaMatting);
             drawScene->clearUserPath();
         }
     }
@@ -246,17 +256,25 @@ void MainWindow::get_cut()
 void MainWindow::on_cutoutImageButton_clicked()
 {
     drawScene->setCurrentShowMode(DrawScene::Seg);
-    drawScene->showCurFrame();
+    drawScene->showCurFrame(useAlphaMatting);
 }
 
 void MainWindow::on_maskButton_clicked()
 {
     drawScene->setCurrentShowMode(DrawScene::Cut);
-    drawScene->showCurFrame();
+    drawScene->showCurFrame(useAlphaMatting);
 }
 
 void MainWindow::on_originalImageButton_clicked()
 {
     drawScene->setCurrentShowMode(DrawScene::Origin);
-    drawScene->showCurFrame();
+    drawScene->showCurFrame(useAlphaMatting);
+}
+
+void MainWindow::on_alphamattingCheckBox_stateChanged(int arg1)
+{
+    useAlphaMatting = arg1 == 2;
+//    if (useAlphaMatting)
+//        runner->doAlphaMatting(runner->getCurFrame());
+    drawScene->showCurFrame(useAlphaMatting);
 }
