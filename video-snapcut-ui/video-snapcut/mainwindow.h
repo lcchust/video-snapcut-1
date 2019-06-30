@@ -49,6 +49,8 @@ private slots:
     void on_originalImageButton_clicked();
     void on_outlineTool_clicked();
 
+    void on_alphamattingCheckBox_stateChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     Run* runner;
@@ -63,7 +65,7 @@ private:
     QString path;
 
     double uiGamma = 10;
-    bool useAlphaMatting = false;
+    bool useAlphaMatting = true;
 };
 
 #endif // MAINWINDOW_H

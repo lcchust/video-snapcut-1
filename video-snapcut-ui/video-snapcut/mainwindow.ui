@@ -122,7 +122,7 @@
           <number>20</number>
          </property>
          <property name="value">
-          <number>2</number>
+          <number>8</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -156,8 +156,11 @@
          <property name="maximum">
           <number>20</number>
          </property>
+         <property name="pageStep">
+          <number>10</number>
+         </property>
          <property name="value">
-          <number>2</number>
+          <number>8</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -186,7 +189,7 @@
           </sizepolicy>
          </property>
          <property name="maximum">
-          <number>30</number>
+          <number>20</number>
          </property>
          <property name="pageStep">
           <number>2</number>
@@ -199,6 +202,9 @@
          </property>
          <property name="tickPosition">
           <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>2</number>
          </property>
         </widget>
        </item>
@@ -214,6 +220,19 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="alphamattingCheckBox">
+         <property name="text">
+          <string>use alpha matting</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QSlider" name="graphcutGammaSlider">
@@ -247,6 +266,7 @@
       <zorder>graphcutGammaSlider</zorder>
       <zorder>outlineTool</zorder>
       <zorder>horizontalSlider_2</zorder>
+      <zorder>alphamattingCheckBox</zorder>
      </widget>
     </item>
     <item row="2" column="1">
@@ -422,7 +442,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="toolsButtonGroup"/>
   <buttongroup name="buttonGroup_video"/>
+  <buttongroup name="toolsButtonGroup"/>
  </buttongroups>
 </ui>

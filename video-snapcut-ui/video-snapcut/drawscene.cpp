@@ -182,6 +182,11 @@ void DrawScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsScene::mouseReleaseEvent(event);
 }
 
+void DrawScene::setMaskPath(QString path)
+{
+    maskSavePath = path;
+}
+
 void DrawScene::maskGenerator(QPainterPath& maskPath)
 {
     QImage mask(imgX, imgY, QImage::Format_RGB888);
@@ -198,7 +203,7 @@ void DrawScene::maskGenerator(QPainterPath& maskPath)
     p.end();
 
     std::cout << "saving!" << imgX << " " << imgY << std::endl;
-    bool saved = mask.save("/Users/97littleleaf11/Desktop/hehe.png", "png");
+    bool saved = mask.save(maskSavePath, "png");
     std::cout << saved << std::endl;
 }
 
@@ -211,7 +216,6 @@ void DrawScene::usermaskGenerator()
 
     QImage mask(imgX, imgY, QImage::Format_RGB888);
     QPainter p(&mask);
-
     p.setPen(QPen(Qt::gray));
     p.setBrush(QBrush(Qt::gray, Qt::SolidPattern));
     p.drawRect(0, 0, imgX, imgY);
@@ -228,15 +232,20 @@ void DrawScene::usermaskGenerator()
 
     p.end();
 
-    bool saved = mask.save("/Users/97littleleaf11/Desktop/haha.png", "png");
-    std::cout << saved << std::endl;
+//    bool saved = mask.save("/Users/97littleleaf11/Desktop/haha.png", "png");
+//    std::cout << saved << std::endl;
 
     cv::Mat tmp = cv::Mat(mask.height(), mask.width(), CV_8UC3, (void*)mask.constBits(), mask.bytesPerLine());
     cv::cvtColor(tmp, tmp, CV_BGR2GRAY);
     curFrame->update_user_mask(tmp);
     if (runner != nullptr) {
         runner->redo();
-        showCurFrame();
+        if (useAlphaMattingPtr && *useAlphaMattingPtr == true) {
+            runner->doAlphaMatting(curFrame, tmp);
+            showCurFrame(true);
+        } else {
+            showCurFrame();
+        }
     }
 }
 
@@ -247,30 +256,40 @@ void DrawScene::trimapGenerator()
         return;
     }
 
-    QImage mask(runner->getCurFrameSegPath(curFrame).c_str());
+    QImage mask(imgX, imgY, QImage::Format_RGB888);
     QPainter p(&mask);
+    p.setPen(QPen(QColor(55, 55, 55)));
+    p.setBrush(QBrush(Qt::gray, Qt::SolidPattern));
+    p.drawRect(0, 0, imgX, imgY);
 
+    for (MyLine *line: curFrame->fgdList) {
+        p.setPen(line->getPen());
+        line->draw(&p);
+    }
+    for (MyLine *line: curFrame->bgdList) {
+        p.setPen(line->getPen());
+        line->draw(&p);
+    }
     for (MyLine *line: outlines) {
         p.setPen(line->getPen());
         line->draw(&p);
     }
     p.end();
 
-    bool saved = mask.save("/Users/97littleleaf11/Desktop/hahahaha.png", "png");
-    if (saved) {
-        std::cout << "  [OK!]: trimap saved!" << std::endl;
-    } else {
-        std::cout << "  [Wrong]: failed to save trimap" << std::endl;
-    }
+//    bool saved = mask.save("/Users/97littleleaf11/Desktop/hahahaha.png", "png");
+//    if (saved) {
+//        std::cout << "  [OK!]: trimap saved!" << std::endl;
+//    } else {
+//        std::cout << "  [Wrong]: failed to save trimap" << std::endl;
+//    }
 
-//    SharedMatting sm;
-//    std::string path = runner->getCurFramePath(curFrame);
-//    char fileAddr[64] = {0};
-//    sprintf(fileAddr, path.c_str());
-//    sm.loadImage(fileAddr);
-//    sm.loadTrimap("/Users/97littleleaf11/Desktop/hahahaha.png");
-//    sm.solveAlpha();
-//    sm.save("/Users/97littleleaf11/Desktop/gethahahahah.png");
+    cv::Mat tmp = cv::Mat(mask.height(), mask.width(), CV_8UC3, (void*)mask.constBits(), mask.bytesPerLine());
+    cv::cvtColor(tmp, tmp, CV_BGR2GRAY);
+    if (runner != nullptr) {
+        runner->redo();
+        runner->doAlphaMatting(curFrame, tmp);
+        showCurFrame(true);
+    }
 }
 
 void DrawScene::setImgSize(int x, int y)
@@ -341,9 +360,10 @@ void DrawScene::showImageFromOpenCV(cv::Mat& cvImage)
     setImgSize(cvImage.cols, cvImage.rows);
 }
 
-void DrawScene::setRunner(Run *_runner)
+void DrawScene::setRunner(Run *_runner, bool* _useAlphaMattingPtr)
 {
     runner = _runner;
+    useAlphaMattingPtr = _useAlphaMattingPtr;
 }
 
 void DrawScene::setCurFrame(Frame *_frame)
@@ -410,6 +430,27 @@ void DrawScene::showCurFrame()
     case Cut:
         showImageFromDisk(runner->getCurFrameCutPath(curFrame));
         break;
+    }
+}
+
+void DrawScene::showCurFrame(bool showAlpha)
+{
+    if (curFrame == nullptr)
+        return;
+    if (showAlpha == false)
+        showCurFrame();
+    else {
+        switch (curShowMode) {
+        case Origin:
+            showImageFromOpenCV(curFrame->get_frame());
+            break;
+        case Seg:
+            showImageFromDisk(runner->getCurFrameSegAlphaPath(curFrame));
+            break;
+        case Cut:
+            showImageFromDisk(runner->getCurFrameCutAlphaPath(curFrame));
+            break;
+        }
     }
 }
 

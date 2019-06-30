@@ -97,7 +97,6 @@ void SharedMatting::loadImage(cv::Mat& img)
     matte.create(Size(width, height), CV_8UC1);
 }
 
-//载入第三方图像
 void SharedMatting::loadTrimap(char * filename)
 {
     trimap = imread(filename);
@@ -111,10 +110,18 @@ void SharedMatting::loadTrimap(char * filename)
     cvWaitKey(0);*/
 }
 
-//载入第三方图像
 void SharedMatting::loadTrimap(std::string path)
 {
     trimap = imread(path);
+    if (!trimap.data) {
+        cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadTrimap!" << endl;
+        exit(-1);
+    }
+}
+
+void SharedMatting::loadTrimap(cv::Mat& img)
+{
+    img.convertTo(trimap, CV_8UC3);
     if (!trimap.data) {
         cout << "[FAILED!]: Loading Image Failed in SharedMatting::loadTrimap!" << endl;
         exit(-1);
@@ -1104,33 +1111,33 @@ void SharedMatting::solveAlpha()
     clock_t start, finish;
     //expandKnown()
     start = clock();
-    cout << "Expanding...";
+    //cout << "Expanding...";
     expandKnown();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 
     //gathering()
     start = clock();
-    cout << "Gathering...";
+    //cout << "Gathering...";
     gathering();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 
     //refineSample()
     start = clock();
-    cout << "Refining...";
+    //cout << "Refining...";
     refineSample();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 
     //localSmooth()
     start = clock();
-    cout << "LocalSmoothing...";
+    //cout << "LocalSmoothing...";
     localSmooth();
-    cout << "    over!!!" << endl;
+    //cout << "    over!!!" << endl;
     finish = clock();
     cout <<  double(finish - start) / (CLOCKS_PER_SEC * 2.5) << endl;
 

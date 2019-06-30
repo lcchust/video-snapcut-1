@@ -45,6 +45,7 @@ public:
     // for snapcut
     void loadImage(cv::Mat& img);
     void loadTrimap(std::string path);
+    void loadTrimap(cv::Mat& img);
     cv::Mat& getMatteMat();
 
     void loadImage(char * filename);
