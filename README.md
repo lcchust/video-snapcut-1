@@ -4,11 +4,11 @@ This repository serves as the course project for Advance in Computer Graphics, Z
 In this project, we have implemented all the following:
 - A complete pipeline of Video-SnapCut (Section 2-3 of the paper)
 
-- Alpha matting (Section 4 of the paper) (We are using this implementation: [np-csu](https://github.com/np-csu)/ [AlphaMatting](https://github.com/np-csu/AlphaMatting))
+- Alpha matting (Section 4 of the paper) (We are using this implementation: [AlphaMatting](https://github.com/np-csu/AlphaMatting))
 
 - UI for interactive refinement (Section 5 of the paper)
 
-- Test and comparison against Adobe After Effects' Rotobrush, see report (Section 6 of the paper)
+- Test and comparison against Adobe After Effects' Rotobrush, see our report for more details (Section 6 of the paper)
 
 ## Prerequisite
 - OpenCV: 3.4.x
