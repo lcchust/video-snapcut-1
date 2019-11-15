@@ -21,6 +21,10 @@ You can build the project using QMake under several platforms. The Qt project fi
 
 ![Cutout Results](images/results.png)
 
+## Demo
+
+Video avaliable at [Google Drive](https://drive.google.com/file/d/15Hm9xs9a6zIIr4fRWtT7tIp9Zf4XIwLm/view?usp=sharing)
+
 ## Reference
 1. Xue Bai, Jue Wang, David Simons, and Guillermo Sapiro. 2009. Video SnapCut: robust video object cutout using localized classifiers.
 2. Carsten Rother, Vladimir Kolmogorov, and Andrew Blake. 2004. "GrabCut": interactive foreground extraction using iterated graph cuts.
